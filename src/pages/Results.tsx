@@ -136,13 +136,29 @@ const Results = () => {
           </div>
         </Card>
 
-        {/* Winner Celebration */}
+        {/* Winner Celebration with Animation */}
         {playerRank === 1 && (
-          <Card className="p-6 bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200">
-            <div className="text-center space-y-3">
-              <div className="text-6xl">🎉</div>
+          <Card className="p-6 bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200 relative overflow-hidden">
+            <div className="text-center space-y-3 relative z-10">
+              <div className="text-6xl animate-bounce">🎉</div>
               <h3 className="text-2xl font-bold text-amber-800">Congratulations!</h3>
               <p className="text-amber-700">Team {playerTeam.name} wins!</p>
+              <div className="text-4xl">🏆👑🌟</div>
+            </div>
+            {/* Animated confetti effect */}
+            <div className="absolute inset-0 pointer-events-none">
+              {Array.from({ length: 20 }, (_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 bg-yellow-400 rounded-full animate-ping"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random()}s`
+                  }}
+                />
+              ))}
             </div>
           </Card>
         )}
@@ -153,7 +169,14 @@ const Results = () => {
             onClick={handlePlayAgain}
             className="w-full min-h-[60px] text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 px-6 py-4"
           >
-            Play Again
+            New Game
+          </Button>
+          <Button
+            onClick={() => window.location.href = '/'}
+            variant="outline"
+            className="w-full min-h-[60px] text-lg font-semibold px-6 py-4"
+          >
+            Return to Lobby
           </Button>
         </div>
 

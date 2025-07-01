@@ -28,9 +28,9 @@ export const QuestionCard = ({
   return (
     <Card className="p-6">
       <div className="space-y-6">
-        {/* Question Text */}
+        {/* Question Text - Large font minimum 20px */}
         <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900 leading-relaxed">
+          <h2 className="text-2xl font-bold text-gray-900 leading-relaxed">
             {question.text}
           </h2>
         </div>
@@ -61,7 +61,7 @@ export const QuestionCard = ({
                   }`}>
                     {letter}
                   </span>
-                  <span className="text-base leading-relaxed flex-1">{option}</span>
+                  <span className="text-lg leading-relaxed flex-1">{option}</span>
                 </span>
               </Button>
             );

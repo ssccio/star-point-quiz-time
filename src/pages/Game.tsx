@@ -29,6 +29,12 @@ const Game = () => {
 
   const { playerName, team: teamId } = location.state || {};
   
+  const [teamMates, setTeamMates] = useState([
+    { name: 'Alice M.', hasAnswered: false },
+    { name: 'Bob K.', hasAnswered: false },
+    { name: 'Carol R.', hasAnswered: true }
+  ]);
+  
   useEffect(() => {
     if (!playerName || !teamId) {
       navigate('/');
@@ -52,6 +58,12 @@ const Game = () => {
   const handleSubmitAnswer = () => {
     if (!selectedAnswer || hasSubmitted) return;
     setHasSubmitted(true);
+    
+    // Mark player as answered
+    setTeamMates(prev => prev.map(mate => 
+      mate.name === playerName ? { ...mate, hasAnswered: true } : mate
+    ));
+    
     // Simulate processing time
     setTimeout(() => {
       setPhase('answer-reveal');
@@ -65,6 +77,9 @@ const Game = () => {
       setSelectedAnswer(null);
       setHasSubmitted(false);
       setTimeRemaining(60);
+      
+      // Reset teammates answered status
+      setTeamMates(prev => prev.map(mate => ({ ...mate, hasAnswered: false })));
       
       // Update scores randomly for demo
       setScores(prev => ({
@@ -100,7 +115,7 @@ const Game = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <div className="max-w-2xl mx-auto py-4 space-y-4">
-        {/* Header */}
+        {/* Header with Team Indicator */}
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -116,7 +131,7 @@ const Game = () => {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-2xl font-bold text-gray-900">
                 Question {currentQuestionIndex + 1} of {sampleQuestions.length}
               </div>
               <div className="text-sm text-gray-500">Score: {scores[teamId as keyof typeof scores]}</div>
@@ -129,7 +144,7 @@ const Game = () => {
           <Timer timeRemaining={timeRemaining} totalTime={60} />
         )}
 
-        {/* Question */}
+        {/* Question with larger text */}
         {phase === 'question' && (
           <QuestionCard
             question={currentQuestion}
@@ -151,10 +166,10 @@ const Game = () => {
           </Button>
         )}
 
-        {/* Answer Submitted State */}
+        {/* Team Status - Show teammates who have answered */}
         {hasSubmitted && phase === 'question' && (
           <Card className="p-6 text-center">
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="text-green-600 font-semibold text-lg">Answer Submitted!</div>
               <p className="text-gray-600">Waiting for other players...</p>
               <div 
@@ -163,30 +178,85 @@ const Game = () => {
               >
                 Your answer: {selectedAnswer}
               </div>
+              
+              {/* Teammates Status */}
+              <div className="mt-4">
+                <p className="text-sm text-gray-500 mb-2">Team {team.name} Status:</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {teamMates.map((mate, index) => (
+                    <div 
+                      key={index}
+                      className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${
+                        mate.hasAnswered ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      <span>{mate.name}</span>
+                      {mate.hasAnswered && <span>✓</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </Card>
         )}
 
-        {/* Answer Reveal */}
+        {/* Enhanced Answer Reveal */}
         {phase === 'answer-reveal' && (
           <div className="space-y-4">
             <Card className="p-6 text-center">
               <div className="space-y-4">
-                <h2 className="text-xl font-bold text-gray-900">Correct Answer</h2>
-                <div className="text-lg font-semibold text-green-600">
-                  {currentQuestion.correctAnswer}
-                </div>
-                <p className="text-gray-600">{currentQuestion.explanation}</p>
+                <h2 className="text-2xl font-bold text-gray-900">Time's Up!</h2>
                 
-                {selectedAnswer === currentQuestion.correctAnswer ? (
-                  <div className="text-green-600 font-semibold">
-                    ✓ Correct! +20 points
-                  </div>
-                ) : (
-                  <div className="text-red-600 font-semibold">
-                    ✗ Incorrect. Your answer: {selectedAnswer}
-                  </div>
-                )}
+                {/* Show all answers with correct/incorrect highlighting */}
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option, index) => {
+                    const letter = String.fromCharCode(65 + index);
+                    const isCorrect = option === currentQuestion.correctAnswer;
+                    const wasSelected = option === selectedAnswer;
+                    
+                    return (
+                      <div 
+                        key={option}
+                        className={`p-3 rounded-lg border-2 ${
+                          isCorrect 
+                            ? 'bg-green-50 border-green-500 text-green-800' 
+                            : wasSelected 
+                              ? 'bg-red-50 border-red-500 text-red-800'
+                              : 'bg-gray-50 border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className={`font-bold px-2 py-1 rounded ${
+                            isCorrect ? 'bg-green-200' : wasSelected ? 'bg-red-200' : 'bg-gray-200'
+                          }`}>
+                            {letter}
+                          </span>
+                          <span className="text-lg">{option}</span>
+                          {isCorrect && <span className="text-green-600 font-bold">✓ CORRECT</span>}
+                          {wasSelected && !isCorrect && <span className="text-red-600 font-bold">✗ YOUR ANSWER</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-gray-700 font-medium">Explanation:</p>
+                  <p className="text-gray-600 mt-1">{currentQuestion.explanation}</p>
+                </div>
+                
+                {/* Points earned */}
+                <div className="text-center">
+                  {selectedAnswer === currentQuestion.correctAnswer ? (
+                    <div className="text-green-600 font-bold text-xl">
+                      ✓ Correct! +20 points
+                    </div>
+                  ) : (
+                    <div className="text-red-600 font-bold text-xl">
+                      ✗ Incorrect. No points earned
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
 
