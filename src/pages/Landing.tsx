@@ -95,7 +95,7 @@ const Landing = ({ preselectedTeam }: LandingProps) => {
           <Button
             onClick={handleJoinGame}
             disabled={playerName.trim().length < 2 || isJoining}
-            className="w-full h-16 text-lg font-semibold"
+            className="w-full min-h-[60px] text-lg font-semibold px-6 py-4"
             style={{ 
               backgroundColor: playerName.trim().length >= 2 ? TEAM_COLORS[team.id] : undefined 
             }}

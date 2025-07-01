@@ -28,7 +28,7 @@ const TeamSelection = () => {
           {Object.values(TEAMS).map((team) => (
             <Card
               key={team.id}
-              className="cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg p-6 text-center space-y-4"
+              className="cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg p-6 text-center space-y-4 min-h-[120px]"
               onClick={() => handleTeamSelect(team.id)}
             >
               <div 

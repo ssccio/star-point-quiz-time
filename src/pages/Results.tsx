@@ -151,7 +151,7 @@ const Results = () => {
         <div className="space-y-3">
           <Button
             onClick={handlePlayAgain}
-            className="w-full h-14 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700"
+            className="w-full min-h-[60px] text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 px-6 py-4"
           >
             Play Again
           </Button>

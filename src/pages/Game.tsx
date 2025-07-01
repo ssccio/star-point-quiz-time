@@ -144,7 +144,7 @@ const Game = () => {
         {phase === 'question' && selectedAnswer && !hasSubmitted && (
           <Button
             onClick={handleSubmitAnswer}
-            className="w-full h-14 text-lg font-semibold"
+            className="w-full min-h-[60px] text-lg font-semibold px-6 py-4"
             style={{ backgroundColor: TEAM_COLORS[team.id] }}
           >
             Submit Answer
@@ -194,7 +194,7 @@ const Game = () => {
 
             <Button
               onClick={handleNextQuestion}
-              className="w-full h-14 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700"
+              className="w-full min-h-[60px] text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 px-6 py-4"
             >
               {currentQuestionIndex < sampleQuestions.length - 1 ? 'Next Question' : 'View Final Results'}
             </Button>

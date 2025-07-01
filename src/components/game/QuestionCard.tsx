@@ -51,7 +51,6 @@ export const QuestionCard = ({
                 style={{
                   backgroundColor: isSelected ? teamColor : undefined,
                   borderColor: isSelected ? teamColor : undefined,
-                  ringColor: isSelected ? teamColor : undefined,
                 }}
                 onClick={() => onAnswerSelect(option)}
                 disabled={hasSubmitted}
