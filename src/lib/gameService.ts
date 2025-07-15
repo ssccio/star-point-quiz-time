@@ -1,6 +1,13 @@
 import { supabase } from './supabase'
 import type { Database } from './supabase'
 
+class GameServiceError extends Error {
+  constructor(message: string, public code?: string, public statusCode?: number) {
+    super(message);
+    this.name = 'GameServiceError';
+  }
+}
+
 type Game = Database['public']['Tables']['games']['Row']
 type Player = Database['public']['Tables']['players']['Row']
 type Answer = Database['public']['Tables']['answers']['Row']
@@ -58,7 +65,9 @@ export const gameService = {
       .select()
       .single()
 
-    if (gameError) throw gameError
+    if (gameError) {
+      throw new GameServiceError(`Failed to create game: ${gameError.message}`, gameError.code);
+    }
 
     // Create host player
     const { data: player, error: playerError } = await supabase
@@ -72,7 +81,9 @@ export const gameService = {
       .select()
       .single()
 
-    if (playerError) throw playerError
+    if (playerError) {
+      throw new GameServiceError(`Failed to create player: ${playerError.message}`, playerError.code);
+    }
 
     return { game, player, gameCode }
   },
@@ -88,7 +99,7 @@ export const gameService = {
       .single()
 
     if (gameError || !game) {
-      throw new Error('Game not found or already started')
+      throw new GameServiceError('Game not found or already started', 'GAME_NOT_FOUND', 404);
     }
 
     // Use assigned team or auto-assign
@@ -106,7 +117,9 @@ export const gameService = {
       .select()
       .single()
 
-    if (playerError) throw playerError
+    if (playerError) {
+      throw new GameServiceError(`Failed to create player: ${playerError.message}`, playerError.code);
+    }
 
     return { game, player }
   },

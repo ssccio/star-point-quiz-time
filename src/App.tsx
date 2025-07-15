@@ -15,7 +15,23 @@ import NotFound from "./pages/NotFound";
 import HostSetup from "./pages/HostSetup";
 import JoinGame from "./pages/JoinGame";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error && 'status' in error && typeof error.status === 'number') {
+          return error.status >= 500 && failureCount < 3;
+        }
+        return failureCount < 3;
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -34,7 +50,6 @@ const App = () => (
           <Route path="/host" element={<HostSetup />} />
           <Route path="/join/:gameCode" element={<JoinGame />} />
           <Route path="/join/:gameCode/:team" element={<JoinGame />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
