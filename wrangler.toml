@@ -1,0 +1,9 @@
+# Cloudflare Pages configuration
+name = "star-point-quiz-time"
+
+[build]
+command = "npm ci && npm run build"
+cwd = ""
+
+[build.environment_variables]
+NODE_VERSION = "22"
