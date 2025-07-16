@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Settings } from 'lucide-react';
+import { Settings, AlertTriangle } from 'lucide-react';
 
 interface AdminLoginProps {
   onLogin: (password: string) => void;
+  error?: string | null;
 }
 
-export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
+export const AdminLogin = ({ onLogin, error }: AdminLoginProps) => {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
@@ -23,6 +24,13 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
           <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
           <p className="text-gray-600">Enter admin password to continue</p>
         </div>
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center space-x-2">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <span className="text-red-800 text-sm">{error}</span>
+          </div>
+        )}
         
         <div className="space-y-4">
           <Input

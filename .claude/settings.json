@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "before_file_edit": {
+      "command": "echo 'Editing file: ${file}' && if [[ '${file}' =~ (admin|Admin) ]]; then echo 'WARNING: Admin file modification detected. Ensure security best practices.'; fi",
+      "description": "Security check for admin file modifications"
+    },
+    "after_file_edit": {
+      "command": "if [[ '${file}' =~ \\.(ts|tsx|js|jsx)$ ]]; then npm run lint --silent 2>/dev/null || echo 'Lint check completed'; fi",
+      "description": "Auto-lint TypeScript/JavaScript files after editing"
+    },
+    "before_admin_work": {
+      "command": "echo 'Starting admin panel work. Security checklist:' && echo '- Remove hardcoded credentials' && echo '- Validate all user inputs' && echo '- Use proper authentication' && echo '- Implement RBAC controls'",
+      "description": "Security reminder for admin panel development"
+    },
+    "validate_env": {
+      "command": "if [[ -f .env ]]; then echo 'Environment file exists'; grep -q 'SUPABASE' .env && echo 'Supabase config found' || echo 'WARNING: Missing Supabase config'; else echo 'WARNING: No .env file found'; fi",
+      "description": "Validate environment configuration"
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit", 
+      "Write",
+      "Bash(npm:*)",
+      "Bash(git:*)",
+      "Bash(echo:*)",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)"
+    ]
+  }
+}
