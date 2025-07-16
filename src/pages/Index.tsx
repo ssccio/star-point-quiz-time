@@ -1,4 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, Crown, Star } from 'lucide-react';
@@ -8,11 +9,12 @@ const Index = () => {
   const navigate = useNavigate();
   const teamParam = searchParams.get('team');
 
-  // If team parameter is provided, go to single player team selection
-  if (teamParam) {
-    navigate('/teams');
-    return null;
-  }
+  // If team parameter is provided, go directly to practice game
+  useEffect(() => {
+    if (teamParam) {
+      navigate(`/game?mode=practice&team=${teamParam}`);
+    }
+  }, [teamParam, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex items-center justify-center">

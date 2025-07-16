@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Timer } from '@/components/game/Timer';
 import { QuestionCard } from '@/components/game/QuestionCard';
@@ -15,7 +15,15 @@ import { useGameTimer } from '@/hooks/useGameTimer';
 const Game = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { playerName, team: teamId } = location.state || {};
+  const [searchParams] = useSearchParams();
+  
+  // Check if this is practice mode
+  const mode = searchParams.get('mode');
+  const isPracticeMode = mode === 'practice';
+  
+  // Get player data from either URL params (practice) or location state (multiplayer)
+  const teamId = isPracticeMode ? searchParams.get('team') : location.state?.team;
+  const playerName = isPracticeMode ? 'Practice Player' : location.state?.playerName;
   
   const gameState = useGameState(playerName, teamId);
   const { timeRemaining, resetTimer } = useGameTimer(
