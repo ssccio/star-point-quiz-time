@@ -77,7 +77,12 @@ const Lobby = () => {
       
       // If game starts, navigate to game page
       if (updatedGame.status === 'active') {
-        navigate('/game');
+        navigate('/game', { 
+          state: { 
+            playerName: currentPlayer?.name || gameData.playerName, 
+            team: currentPlayer?.team || gameData.team 
+          } 
+        });
       }
     });
   };
