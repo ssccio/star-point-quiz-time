@@ -77,12 +77,17 @@ const Lobby = () => {
       
       // If game starts, navigate to game page
       if (updatedGame.status === 'active') {
-        navigate('/game', { 
-          state: { 
-            playerName: currentPlayer?.name || gameData.playerName, 
-            team: currentPlayer?.team || gameData.team 
-          } 
-        });
+        const playerName = currentPlayer?.name || gameData.playerName;
+        const team = currentPlayer?.team || gameData.team;
+        
+        if (playerName && team) {
+          navigate('/game', { 
+            state: { playerName, team } 
+          });
+        } else {
+          console.error('Missing player data for game navigation', { currentPlayer, gameData });
+          navigate('/');
+        }
       }
     });
   };
