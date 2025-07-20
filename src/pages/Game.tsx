@@ -14,6 +14,11 @@ type GamePhase = 'question' | 'answer-reveal' | 'leaderboard' | 'final-wager' | 
 const Game = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  console.log('Game component rendered:', { 
+    locationState: location.state, 
+    pathname: location.pathname 
+  });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [phase, setPhase] = useState<GamePhase>('question');
   const [timeRemaining, setTimeRemaining] = useState(60);
@@ -29,6 +34,8 @@ const Game = () => {
 
   const { playerName, team: teamId } = location.state || {};
   
+  console.log('Extracted state:', { playerName, teamId });
+  
   const [teamMates, setTeamMates] = useState([
     { name: 'Alice M.', hasAnswered: false },
     { name: 'Bob K.', hasAnswered: false },
@@ -36,16 +43,27 @@ const Game = () => {
   ]);
   
   useEffect(() => {
+    console.log('Game useEffect check:', { playerName, teamId });
     if (!playerName || !teamId) {
+      console.log('Missing required state, redirecting to home');
       navigate('/');
       return;
     }
+    console.log('State validation passed');
   }, [playerName, teamId, navigate]);
 
   const team = TEAMS[teamId];
   const currentQuestion = sampleQuestions[currentQuestionIndex];
   
+  console.log('Team and question check:', { 
+    teamId, 
+    team, 
+    currentQuestionIndex, 
+    currentQuestion: !!currentQuestion 
+  });
+  
   if (!team || !currentQuestion) {
+    console.log('Missing team or question, redirecting to home');
     navigate('/');
     return null;
   }
