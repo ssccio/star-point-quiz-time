@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, isSupabaseConfigured } from './supabase'
 import type { Database } from './supabase'
 
 class GameServiceError extends Error {
@@ -6,6 +6,14 @@ class GameServiceError extends Error {
     super(message);
     this.name = 'GameServiceError';
   }
+}
+
+// Helper to ensure Supabase is configured
+function ensureSupabaseConfigured() {
+  if (!supabase) {
+    throw new GameServiceError('Supabase not configured. Please configure environment variables to use multiplayer features.', 'SUPABASE_NOT_CONFIGURED');
+  }
+  return supabase;
 }
 
 type Game = Database['public']['Tables']['games']['Row']
@@ -24,7 +32,9 @@ function generateGameCode(): string {
 
 // Auto-assign team based on current team counts
 async function getNextAvailableTeam(gameId: string): Promise<string> {
-  const { data: players } = await supabase
+  const client = ensureSupabaseConfigured();
+  
+  const { data: players } = await client
     .from('players')
     .select('team')
     .eq('game_id', gameId)
@@ -48,14 +58,18 @@ async function getNextAvailableTeam(gameId: string): Promise<string> {
   )[0]
 }
 
+export { isSupabaseConfigured };
+
 export const gameService = {
   // Host creates a new game
   async createGame(hostName: string): Promise<{ game: Game; player: Player; gameCode: string }> {
+    const client = ensureSupabaseConfigured();
+
     const gameCode = generateGameCode()
     const hostId = crypto.randomUUID()
 
     // Create game
-    const { data: game, error: gameError } = await supabase
+    const { data: game, error: gameError } = await client
       .from('games')
       .insert({
         game_code: gameCode,
@@ -70,7 +84,7 @@ export const gameService = {
     }
 
     // Create host player
-    const { data: player, error: playerError } = await supabase
+    const { data: player, error: playerError } = await client
       .from('players')
       .insert({
         game_id: game.id,
@@ -90,8 +104,10 @@ export const gameService = {
 
   // Player joins existing game
   async joinGame(gameCode: string, playerName: string, assignedTeam?: string): Promise<{ game: Game; player: Player }> {
+    const client = ensureSupabaseConfigured();
+    
     // Find game by code
-    const { data: game, error: gameError } = await supabase
+    const { data: game, error: gameError } = await client
       .from('games')
       .select()
       .eq('game_code', gameCode)
@@ -106,7 +122,7 @@ export const gameService = {
     const team = assignedTeam || await getNextAvailableTeam(game.id)
 
     // Create player
-    const { data: player, error: playerError } = await supabase
+    const { data: player, error: playerError } = await client
       .from('players')
       .insert({
         game_id: game.id,
@@ -126,7 +142,9 @@ export const gameService = {
 
   // Get game by code
   async getGame(gameCode: string): Promise<Game | null> {
-    const { data } = await supabase
+    const client = ensureSupabaseConfigured();
+    
+    const { data } = await client
       .from('games')
       .select()
       .eq('game_code', gameCode)
@@ -137,7 +155,9 @@ export const gameService = {
 
   // Get all players in game
   async getPlayers(gameId: string): Promise<Player[]> {
-    const { data } = await supabase
+    const client = ensureSupabaseConfigured();
+    
+    const { data } = await client
       .from('players')
       .select()
       .eq('game_id', gameId)
@@ -148,7 +168,9 @@ export const gameService = {
 
   // Subscribe to player updates
   subscribeToPlayers(gameId: string, callback: (players: Player[]) => void) {
-    return supabase
+    const client = ensureSupabaseConfigured();
+    
+    return client
       .channel(`players:${gameId}`)
       .on(
         'postgres_changes',
@@ -168,7 +190,9 @@ export const gameService = {
 
   // Start game (host only)
   async startGame(gameId: string): Promise<void> {
-    const { error } = await supabase
+    const client = ensureSupabaseConfigured();
+    
+    const { error } = await client
       .from('games')
       .update({ status: 'active', current_question: 1 })
       .eq('id', gameId)
@@ -178,7 +202,9 @@ export const gameService = {
 
   // Submit answer
   async submitAnswer(gameId: string, playerId: string, questionId: number, answer: string, isCorrect: boolean): Promise<void> {
-    const { error } = await supabase
+    const client = ensureSupabaseConfigured();
+    
+    const { error } = await client
       .from('answers')
       .insert({
         game_id: gameId,
@@ -192,14 +218,14 @@ export const gameService = {
 
     // Update player score if correct
     if (isCorrect) {
-      const { data: player } = await supabase
+      const { data: player } = await client
         .from('players')
         .select('score')
         .eq('id', playerId)
         .single()
 
       if (player) {
-        const { error: scoreError } = await supabase
+        const { error: scoreError } = await client
           .from('players')
           .update({ score: player.score + 20 })
           .eq('id', playerId)
@@ -211,7 +237,9 @@ export const gameService = {
 
   // Subscribe to game updates
   subscribeToGame(gameId: string, callback: (game: Game) => void) {
-    return supabase
+    const client = ensureSupabaseConfigured();
+    
+    return client
       .channel(`game:${gameId}`)
       .on(
         'postgres_changes',
