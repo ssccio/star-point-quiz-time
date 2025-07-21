@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, isDevelopmentMode } from './supabase'
 import type { Database } from './supabase'
 
 class GameServiceError extends Error {
@@ -11,6 +11,14 @@ class GameServiceError extends Error {
 type Game = Database['public']['Tables']['games']['Row']
 type Player = Database['public']['Tables']['players']['Row']
 type Answer = Database['public']['Tables']['answers']['Row']
+
+// Mock data store for development mode
+const mockStore = {
+  games: new Map<string, Game>(),
+  players: new Map<string, Player>(),
+  answers: new Map<string, Answer>(),
+  gamesByCode: new Map<string, string>() // gameCode -> gameId mapping
+}
 
 // Generate random 6-character game code
 function generateGameCode(): string {
@@ -54,7 +62,41 @@ export const gameService = {
     const gameCode = generateGameCode()
     const hostId = crypto.randomUUID()
 
-    // Create game
+    if (isDevelopmentMode) {
+      // Mock implementation for development
+      const gameId = crypto.randomUUID()
+      const playerId = crypto.randomUUID()
+      const now = new Date().toISOString()
+
+      const game: Game = {
+        id: gameId,
+        game_code: gameCode,
+        status: 'waiting',
+        current_question: 0,
+        host_id: hostId,
+        created_at: now,
+        updated_at: now
+      }
+
+      const player: Player = {
+        id: playerId,
+        game_id: gameId,
+        name: hostName,
+        team: 'adah',
+        score: 0,
+        is_host: true,
+        joined_at: now
+      }
+
+      // Store in mock store
+      mockStore.games.set(gameId, game)
+      mockStore.players.set(playerId, player)
+      mockStore.gamesByCode.set(gameCode, gameId)
+
+      return { game, player, gameCode }
+    }
+
+    // Real Supabase implementation
     const { data: game, error: gameError } = await supabase
       .from('games')
       .insert({
@@ -126,6 +168,12 @@ export const gameService = {
 
   // Get game by code
   async getGame(gameCode: string): Promise<Game | null> {
+    if (isDevelopmentMode) {
+      const gameId = mockStore.gamesByCode.get(gameCode)
+      if (!gameId) return null
+      return mockStore.games.get(gameId) || null
+    }
+
     const { data } = await supabase
       .from('games')
       .select()
@@ -137,6 +185,12 @@ export const gameService = {
 
   // Get all players in game
   async getPlayers(gameId: string): Promise<Player[]> {
+    if (isDevelopmentMode) {
+      return Array.from(mockStore.players.values())
+        .filter(player => player.game_id === gameId)
+        .sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime())
+    }
+
     const { data } = await supabase
       .from('players')
       .select()
@@ -148,6 +202,13 @@ export const gameService = {
 
   // Subscribe to player updates
   subscribeToPlayers(gameId: string, callback: (players: Player[]) => void) {
+    if (isDevelopmentMode) {
+      // Mock subscription - just return a fake unsubscribe function
+      return {
+        unsubscribe: () => Promise.resolve({ error: null })
+      }
+    }
+
     return supabase
       .channel(`players:${gameId}`)
       .on(
@@ -211,6 +272,13 @@ export const gameService = {
 
   // Subscribe to game updates
   subscribeToGame(gameId: string, callback: (game: Game) => void) {
+    if (isDevelopmentMode) {
+      // Mock subscription - just return a fake unsubscribe function
+      return {
+        unsubscribe: () => Promise.resolve({ error: null })
+      }
+    }
+
     return supabase
       .channel(`game:${gameId}`)
       .on(
