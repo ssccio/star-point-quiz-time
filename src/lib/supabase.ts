@@ -3,13 +3,16 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Create a conditional client that gracefully handles missing environment variables
-export const supabase = !supabaseUrl || !supabaseAnonKey 
-  ? null 
-  : createClient(supabaseUrl, supabaseAnonKey)
+// Check if we're in development mode with missing credentials
+export const isDevelopmentMode = !supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('dummy')
 
 // Helper function to check if Supabase is available
-export const isSupabaseConfigured = () => !!(supabaseUrl && supabaseAnonKey)
+export const isSupabaseConfigured = () => !!(supabaseUrl && supabaseAnonKey) && !isDevelopmentMode
+
+// Create client with fallback for development
+export const supabase = isDevelopmentMode 
+  ? createClient('https://dummy.supabase.co', 'dummy_key') 
+  : createClient(supabaseUrl, supabaseAnonKey)
 
 // Database types
 export interface Database {
