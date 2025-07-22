@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Monitor, AlertTriangle } from 'lucide-react';
+import { Monitor, AlertTriangle, QrCode, Printer } from 'lucide-react';
 import { sampleQuestions } from '@/utils/sampleData';
 import { APP_CONFIG } from '@/utils/config';
 import { AdminLogin } from '@/components/admin/AdminLogin';
@@ -32,6 +33,7 @@ interface AdminState {
 }
 
 const Admin = () => {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [gameCode, setGameCode] = useState('');
   const [adminState, setAdminState] = useState<AdminState>({
@@ -225,6 +227,35 @@ const Admin = () => {
           </div>
         </div>
 
+        {/* QR Code Generation Section */}
+        <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <h2 className="text-xl font-semibold mb-4 flex items-center space-x-2">
+            <QrCode className="w-6 h-6 text-indigo-600" />
+            <span>Table QR Codes</span>
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Generate printable QR codes for each team table. Print these at home before the event.
+          </p>
+          <div className="flex space-x-4">
+            <button
+              onClick={() => navigate('/admin/qr-codes')}
+              className="flex items-center space-x-2 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Generate All Team QR Codes</span>
+            </button>
+            <button
+              onClick={() => {
+                const baseUrl = prompt('Enter base URL (leave empty for current):', window.location.origin) || window.location.origin;
+                navigate(`/admin/qr-codes?baseUrl=${encodeURIComponent(baseUrl)}`);
+              }}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+            >
+              Custom Domain
+            </button>
+          </div>
+        </div>
+
         {/* Game Code Input */}
         {!adminState.selectedGame && (
           <div className="bg-white rounded-lg p-6 shadow-sm border">
@@ -232,11 +263,11 @@ const Admin = () => {
             <div className="flex space-x-4">
               <input
                 type="text"
-                placeholder="Enter game code (e.g., ABC123)"
+                placeholder="Enter game code (e.g., ABC)"
                 value={gameCode}
                 onChange={(e) => setGameCode(e.target.value.toUpperCase())}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                maxLength={6}
+                maxLength={3}
               />
               <button
                 onClick={loadGameData}

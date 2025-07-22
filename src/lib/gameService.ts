@@ -28,11 +28,11 @@ const mockStore = {
   gamesByCode: new Map<string, string>() // gameCode -> gameId mapping
 }
 
-// Generate random 6-character game code
+// Generate random 3-character game code
 function generateGameCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let result = ''
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 3; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return result
@@ -168,7 +168,7 @@ export const gameService = {
       .insert({
         game_id: game.id,
         name: playerName,
-        team: team as any,
+        team: team as 'adah' | 'ruth' | 'esther' | 'martha' | 'electa',
         is_host: false
       })
       .select()

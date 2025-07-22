@@ -14,6 +14,8 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import HostSetup from "./pages/HostSetup";
 import JoinGame from "./pages/JoinGame";
+import TeamJoin from "./pages/TeamJoin";
+import PrintableQR from "./pages/PrintableQR";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,7 +49,9 @@ const App = () => (
           <Route path="/game" element={<Game />} />
           <Route path="/results" element={<Results />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/qr-codes" element={<PrintableQR />} />
           <Route path="/host" element={<HostSetup />} />
+          <Route path="/join" element={<TeamJoin />} />
           <Route path="/join/:gameCode" element={<JoinGame />} />
           <Route path="/join/:gameCode/:team" element={<JoinGame />} />
           <Route path="*" element={<NotFound />} />
