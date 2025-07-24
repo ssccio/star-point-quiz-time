@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { TEAMS, TEAM_COLORS } from '@/utils/constants'
@@ -10,35 +10,87 @@ const PrintableQR = () => {
   const [searchParams] = useSearchParams()
   const [qrDataUrls, setQrDataUrls] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
+  const [progress, setProgress] = useState(0)
+  const qrCacheRef = useRef<Record<string, string>>({})
   
   const team = searchParams.get('team')
   const baseUrl = searchParams.get('baseUrl') || window.location.origin
   
-  const teams = team ? [team] : ['adah', 'ruth', 'esther', 'martha', 'electa']
+  const teams = useMemo(() => 
+    team ? [team] : ['adah', 'ruth', 'esther', 'martha', 'electa'], 
+    [team]
+  )
   
   const generateQRCodes = async () => {
     setLoading(true)
+    setProgress(0)
     const urls: Record<string, string> = {}
+    let completedCount = 0
     
-    for (const teamName of teams) {
-      try {
-        const joinUrl = `${baseUrl}/join?team=${teamName}`
-        const qrDataUrl = await QRCode.toDataURL(joinUrl, {
-          width: 300,
-          margin: 2,
-          color: {
-            dark: TEAM_COLORS[teamName as keyof typeof TEAM_COLORS],
-            light: '#FFFFFF'
-          }
-        })
-        urls[teamName] = qrDataUrl
-      } catch (error) {
-        console.error(`Failed to generate QR code for ${teamName}:`, error)
-      }
+    const updateProgress = () => {
+      completedCount++
+      const progress = (completedCount / teams.length) * 100
+      setProgress(progress)
+      console.log(`Progress: ${Math.round(progress)}% (${completedCount}/${teams.length})`)
     }
     
-    setQrDataUrls(urls)
-    setLoading(false)
+    try {
+      // Generate QR codes in parallel with caching
+      const qrPromises = teams.map(async (teamName) => {
+        try {
+          const joinUrl = `${baseUrl}/join?team=${teamName}`
+          const cacheKey = `${joinUrl}-${TEAM_COLORS[teamName as keyof typeof TEAM_COLORS]}`
+          
+          // Check cache first
+          if (qrCacheRef.current[cacheKey]) {
+            console.log(`Using cached QR code for team ${teamName}`)
+            updateProgress()
+            return { teamName, qrDataUrl: qrCacheRef.current[cacheKey], success: true }
+          }
+          
+          // Generate new QR code with optimized settings
+          const qrDataUrl = await QRCode.toDataURL(joinUrl, {
+            width: 200, // Reduced from 300
+            margin: 1,  // Reduced from 2
+            errorCorrectionLevel: 'L', // Lowest error correction for speed
+            color: {
+              dark: TEAM_COLORS[teamName as keyof typeof TEAM_COLORS],
+              light: '#FFFFFF'
+            }
+          })
+          
+          // Cache the result
+          qrCacheRef.current[cacheKey] = qrDataUrl
+          
+          console.log(`Generated QR code for team ${teamName}`)
+          updateProgress()
+          return { teamName, qrDataUrl, success: true }
+          
+        } catch (error) {
+          console.error(`Failed to generate QR code for ${teamName}:`, error)
+          updateProgress()
+          return { teamName, qrDataUrl: null, success: false }
+        }
+      })
+      
+      // Wait for all QR codes to complete
+      const results = await Promise.all(qrPromises)
+      
+      // Build URLs object from successful results
+      results.forEach(({ teamName, qrDataUrl, success }) => {
+        if (success && qrDataUrl) {
+          urls[teamName] = qrDataUrl
+        }
+      })
+      
+      setQrDataUrls(urls)
+      console.log('All QR codes generated successfully')
+      
+    } catch (error) {
+      console.error('Error generating QR codes:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -58,9 +110,18 @@ const PrintableQR = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-white p-8 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Generating QR codes...</p>
+          <p className="text-gray-600 mb-4">Generating QR codes...</p>
+          
+          {/* Progress bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div 
+              className="bg-indigo-600 h-2 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <p className="text-sm text-gray-500">{Math.round(progress)}% complete</p>
         </div>
       </div>
     )
@@ -136,7 +197,7 @@ const PrintableQR = () => {
                       src={qrDataUrl} 
                       alt={`QR Code for Team ${teamInfo.name}`}
                       className="mx-auto"
-                      style={{ width: '300px', height: '300px' }}
+                      style={{ width: '200px', height: '200px' }}
                     />
                   )}
                 </div>
