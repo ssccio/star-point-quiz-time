@@ -220,6 +220,19 @@ export const gameService = {
 
   // Start game (host only)
   async startGame(gameId: string): Promise<void> {
+    if (isDevelopmentMode) {
+      // Mock implementation for development
+      const game = mockStore.games.get(gameId)
+      if (!game) {
+        throw new GameServiceError('Game not found', 'GAME_NOT_FOUND', 404)
+      }
+      
+      // Update game status in mock store
+      const updatedGame = { ...game, status: 'active' as const, current_question: 1 }
+      mockStore.games.set(gameId, updatedGame)
+      return
+    }
+
     const client = ensureSupabaseConfigured();
     
     const { error } = await client

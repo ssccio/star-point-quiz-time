@@ -190,7 +190,17 @@ const Admin = () => {
     
     try {
       await gameService.startGame(adminState.selectedGame.id);
-      setAdminState(prev => ({ ...prev, error: null }));
+      
+      // Update local game state to reflect the change
+      setAdminState(prev => ({ 
+        ...prev, 
+        selectedGame: prev.selectedGame ? {
+          ...prev.selectedGame,
+          status: 'active',
+          current_question: 1
+        } : null,
+        error: null 
+      }));
     } catch (error) {
       setAdminState(prev => ({ 
         ...prev, 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,10 +11,15 @@ import { toast } from 'sonner'
 
 const JoinGame = () => {
   const { gameCode, team } = useParams<{ gameCode: string; team?: string }>()
-  const [playerName, setPlayerName] = useState('')
+  const location = useLocation()
   const [isJoining, setIsJoining] = useState(false)
   const [gameExists, setGameExists] = useState<boolean | null>(null)
   const navigate = useNavigate()
+  
+  // Check if name was passed from QR code flow
+  const passedName = location.state?.playerName
+  const fromQRCode = location.state?.fromQRCode
+  const [playerName, setPlayerName] = useState(passedName || '')
   
   // Validate team parameter if provided
   const validTeams = ['adah', 'ruth', 'esther', 'martha', 'electa']
@@ -156,17 +161,25 @@ const JoinGame = () => {
           </div>
 
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="playerName">Your Name</Label>
-              <Input
-                id="playerName"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="Enter your name"
-                disabled={isJoining}
-                onKeyDown={(e) => e.key === 'Enter' && joinGame()}
-              />
-            </div>
+            {fromQRCode && passedName ? (
+              <div className="text-center">
+                <div className="text-lg text-gray-600 mb-2">Welcome back,</div>
+                <div className="text-2xl font-bold text-indigo-600">{passedName}</div>
+                <div className="text-sm text-gray-500 mt-1">Ready to join the game!</div>
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="playerName">Your Name</Label>
+                <Input
+                  id="playerName"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  placeholder="Enter your name"
+                  disabled={isJoining}
+                  onKeyDown={(e) => e.key === 'Enter' && joinGame()}
+                />
+              </div>
+            )}
 
             <Button 
               onClick={joinGame} 

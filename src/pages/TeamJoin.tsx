@@ -55,8 +55,13 @@ const TeamJoin = () => {
       return
     }
     
-    // Navigate to the regular join flow with pre-filled team
-    navigate(`/join/${gameCode.toUpperCase()}/${assignedTeam}`)
+    // Navigate to the regular join flow with pre-filled team and name
+    navigate(`/join/${gameCode.toUpperCase()}/${assignedTeam}`, {
+      state: { 
+        playerName: playerName.trim(),
+        fromQRCode: true 
+      }
+    })
   }
 
   return (
