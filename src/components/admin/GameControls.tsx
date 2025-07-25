@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Square, SkipForward } from 'lucide-react';
 
-type GameStatus = 'waiting' | 'playing' | 'paused' | 'finished';
+type GameStatus = 'waiting' | 'active' | 'paused' | 'finished';
 
 interface GameControlsProps {
   gameStatus: GameStatus;
@@ -25,7 +25,7 @@ export const GameControls = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Button 
           onClick={onStartGame}
-          disabled={gameStatus === 'playing'}
+          disabled={gameStatus === 'active'}
           className="min-h-[60px] bg-green-600 hover:bg-green-700"
         >
           <Play className="w-5 h-5 mr-2" />
@@ -33,7 +33,7 @@ export const GameControls = ({
         </Button>
         <Button 
           onClick={onPauseGame}
-          disabled={gameStatus !== 'playing'}
+          disabled={gameStatus !== 'active'}
           className="min-h-[60px] bg-yellow-600 hover:bg-yellow-700"
         >
           <Pause className="w-5 h-5 mr-2" />
@@ -49,7 +49,7 @@ export const GameControls = ({
         </Button>
         <Button 
           onClick={onNextQuestion}
-          disabled={gameStatus !== 'playing'}
+          disabled={gameStatus !== 'active'}
           className="min-h-[60px] bg-blue-600 hover:bg-blue-700"
         >
           <SkipForward className="w-5 h-5 mr-2" />
