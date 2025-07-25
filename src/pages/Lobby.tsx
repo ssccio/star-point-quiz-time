@@ -31,10 +31,12 @@ const Lobby = () => {
     }
 
     loadGameData();
-    setupRealTimeSubscriptions();
+    const subscriptions = setupRealTimeSubscriptions();
     
     return () => {
       // Cleanup subscriptions
+      subscriptions.playersSubscription?.unsubscribe();
+      subscriptions.gameSubscription?.unsubscribe();
     };
   }, [gameData.gameId, gameData.playerId, navigate]);
 
@@ -47,6 +49,18 @@ const Lobby = () => {
 
       if (gameResult) {
         setGame(gameResult);
+        
+        // If game is already active when loading, redirect immediately
+        if (gameResult.status === 'active') {
+          toast.success('Game is already active! Joining...');
+          navigate('/game', { 
+            state: { 
+              playerName: gameData.playerName,
+              team: gameData.team 
+            } 
+          });
+          return;
+        }
       }
       
       setPlayers(playersResult);
@@ -77,9 +91,17 @@ const Lobby = () => {
       
       // If game starts, navigate to game page
       if (updatedGame.status === 'active') {
-        navigate('/game');
+        toast.success('Game is starting!');
+        navigate('/game', { 
+          state: { 
+            playerName: currentPlayer?.name || gameData.playerName,
+            team: currentPlayer?.team || gameData.team 
+          } 
+        });
       }
     });
+
+    return { playersSubscription, gameSubscription };
   };
 
   const startGame = async () => {
