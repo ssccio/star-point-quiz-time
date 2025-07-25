@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Monitor, AlertTriangle, QrCode, Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Monitor, AlertTriangle, QrCode, Printer, Plus, Loader2, Crown } from 'lucide-react';
 import { sampleQuestions } from '@/utils/sampleData';
+import { loadDefaultQuestions } from '@/utils/questionLoader';
 import { APP_CONFIG } from '@/utils/config';
 import { AdminLogin } from '@/components/admin/AdminLogin';
 import { GameControls } from '@/components/admin/GameControls';
@@ -11,6 +15,7 @@ import { TeamManagement } from '@/components/admin/TeamManagement';
 import { QuestionDisplay } from '@/components/admin/QuestionDisplay';
 import { gameService } from '@/lib/gameService';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import type { Database } from '@/lib/supabase';
 
 type Game = Database['public']['Tables']['games']['Row'];
@@ -36,6 +41,10 @@ const Admin = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [gameCode, setGameCode] = useState('');
+  const [hostName, setHostName] = useState('');
+  const [isCreatingGame, setIsCreatingGame] = useState(false);
+  const [showCreateGame, setShowCreateGame] = useState(true);
+  const [totalQuestions, setTotalQuestions] = useState(sampleQuestions.length);
   const [adminState, setAdminState] = useState<AdminState>({
     selectedGame: null,
     players: [],
@@ -85,6 +94,20 @@ const Admin = () => {
     } catch (error) {
       localStorage.removeItem('adminAuth');
     }
+  }, []);
+
+  // Load questions to get accurate count
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        const { questions } = await loadDefaultQuestions();
+        setTotalQuestions(questions.length);
+      } catch (error) {
+        console.warn('Using fallback question count:', error);
+      }
+    };
+    
+    loadQuestions();
   }, []);
 
   const loadGameData = useCallback(async () => {
@@ -193,6 +216,40 @@ const Admin = () => {
     setAdminState(prev => ({ ...prev, error: 'Manual score adjustment not yet implemented' }));
   };
 
+  const createNewGame = async () => {
+    if (!hostName.trim()) {
+      toast.error('Please enter your name');
+      return;
+    }
+
+    setIsCreatingGame(true);
+    try {
+      const { game, gameCode: newGameCode } = await gameService.createGame(hostName.trim());
+      
+      // Set the created game as the current game
+      setGameCode(newGameCode);
+      setAdminState(prev => ({
+        ...prev,
+        selectedGame: game,
+        players: [], // No players initially - admin is not a player
+        error: null
+      }));
+      
+      setShowCreateGame(false);
+      toast.success(`Game created successfully! Code: ${newGameCode}`);
+      
+    } catch (error) {
+      console.error('Error creating game:', error);
+      toast.error('Failed to create game. Please try again.');
+      setAdminState(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Failed to create game' 
+      }));
+    } finally {
+      setIsCreatingGame(false);
+    }
+  };
+
   const totalPlayers = adminState.players.length;
   const totalConnected = adminState.players.length;
 
@@ -244,53 +301,122 @@ const Admin = () => {
               <Printer className="w-4 h-4" />
               <span>Generate All Team QR Codes</span>
             </button>
-            <button
-              onClick={() => {
-                const baseUrl = prompt('Enter base URL (leave empty for current):', window.location.origin) || window.location.origin;
-                navigate(`/admin/qr-codes?baseUrl=${encodeURIComponent(baseUrl)}`);
-              }}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-            >
-              Custom Domain
-            </button>
           </div>
         </div>
 
-        {/* Game Code Input */}
+        {/* Game Management */}
         {!adminState.selectedGame && (
           <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <h2 className="text-xl font-semibold mb-4">Connect to Game</h2>
-            <div className="flex space-x-4">
-              <input
-                type="text"
-                placeholder="Enter game code (e.g., ABC)"
-                value={gameCode}
-                onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                maxLength={3}
-              />
-              <button
-                onClick={loadGameData}
-                disabled={!gameCode || adminState.loading}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {adminState.loading ? 'Loading...' : 'Connect'}
-              </button>
+            <div className="space-y-6">
+              {showCreateGame ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold flex items-center space-x-2">
+                      <Crown className="w-6 h-6 text-indigo-600" />
+                      <span>Create New Game</span>
+                    </h2>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setShowCreateGame(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      Or connect to existing game →
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="hostName">Your Name (Host)</Label>
+                      <Input
+                        id="hostName"
+                        value={hostName}
+                        onChange={(e) => setHostName(e.target.value)}
+                        placeholder="Enter your name"
+                        disabled={isCreatingGame}
+                        onKeyDown={(e) => e.key === 'Enter' && createNewGame()}
+                      />
+                    </div>
+                    
+                    <Button 
+                      onClick={createNewGame} 
+                      className="w-full bg-indigo-600 hover:bg-indigo-700"
+                      disabled={isCreatingGame || !hostName.trim()}
+                    >
+                      {isCreatingGame ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating Game...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create New Game
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">Connect to Existing Game</h2>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setShowCreateGame(true)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      ← Create new game instead
+                    </Button>
+                  </div>
+                  
+                  <div className="flex space-x-4">
+                    <Input
+                      placeholder="Enter game code (e.g., ABC)"
+                      value={gameCode}
+                      onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                      maxLength={3}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={loadGameData}
+                      disabled={!gameCode || adminState.loading}
+                      className="px-6"
+                    >
+                      {adminState.loading ? 'Loading...' : 'Connect'}
+                    </Button>
+                  </div>
+                </>
+              )}
+              
+              {adminState.error && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                  <div className="flex items-center">
+                    <AlertTriangle className="w-5 h-5 text-red-500 mr-3" />
+                    <p className="text-red-700">{adminState.error}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Error Display */}
-        {adminState.error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <span className="text-red-800">{adminState.error}</span>
-            <button
-              onClick={() => setAdminState(prev => ({ ...prev, error: null }))}
-              className="ml-auto text-red-600 hover:text-red-800"
-            >
-              ×
-            </button>
+        {/* Active Game Status - Show when game is connected */}
+        {adminState.selectedGame && gameCode && (
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Game Active</h2>
+                <p className="text-indigo-100">
+                  Announce this code to your players: <span className="font-mono text-3xl font-bold text-white">{gameCode}</span>
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-indigo-100">Total Players</div>
+                <div className="text-3xl font-bold">{totalPlayers}</div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -312,7 +438,7 @@ const Admin = () => {
             totalPlayers={totalPlayers}
             timerRemaining={60} // TODO: Implement real timer
             currentQuestion={adminState.selectedGame.current_question || 0}
-            totalQuestions={sampleQuestions.length}
+            totalQuestions={totalQuestions}
           />
         )}
 

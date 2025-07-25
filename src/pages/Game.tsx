@@ -8,7 +8,6 @@ import { GameHeader } from '@/components/game/GameHeader';
 import { AnswerReveal } from '@/components/game/AnswerReveal';
 import { TeamStatus } from '@/components/game/TeamStatus';
 import { TEAMS, TEAM_COLORS } from '@/utils/constants';
-import { sampleQuestions } from '@/utils/sampleData';
 import { useGameState } from '@/hooks/useGameState';
 import { useGameTimer } from '@/hooks/useGameTimer';
 
@@ -25,7 +24,7 @@ const Game = () => {
   const teamId = isPracticeMode ? searchParams.get('team') : location.state?.team;
   const playerName = isPracticeMode ? 'Practice Player' : location.state?.playerName;
   
-  const gameState = useGameState(playerName, teamId);
+  const gameState = useGameState(playerName, teamId, isPracticeMode);
   const { timeRemaining, resetTimer } = useGameTimer(
     60, 
     gameState.phase === 'question' && !gameState.hasSubmitted,
@@ -60,8 +59,11 @@ const Game = () => {
           team={team}
           playerName={playerName}
           currentQuestionIndex={gameState.currentQuestionIndex}
-          totalQuestions={sampleQuestions.length}
-          teamScore={gameState.scores[teamId as keyof typeof gameState.scores]}
+          totalQuestions={gameState.questions.length}
+          teamScore={isPracticeMode ? 
+            Math.round((gameState.practiceStats.correctAnswers / Math.max(gameState.practiceStats.totalAnswered, 1)) * 100) : 
+            gameState.scores[teamId as keyof typeof gameState.scores]
+          }
         />
 
         {/* Timer */}
@@ -91,8 +93,8 @@ const Game = () => {
           </Button>
         )}
 
-        {/* Team Status - Show teammates who have answered */}
-        {gameState.hasSubmitted && gameState.phase === 'question' && (
+        {/* Team Status - Show teammates who have answered (only in multiplayer) */}
+        {!isPracticeMode && gameState.hasSubmitted && gameState.phase === 'question' && (
           <TeamStatus
             team={team}
             selectedAnswer={gameState.selectedAnswer}
@@ -100,16 +102,47 @@ const Game = () => {
           />
         )}
 
+        {/* Practice Mode Progress - Show encouraging stats */}
+        {isPracticeMode && gameState.hasSubmitted && gameState.phase === 'question' && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-200">
+            <div className="text-center">
+              <div className="text-sm text-gray-600 mb-2">Your Progress</div>
+              <div className="flex justify-center space-x-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {gameState.practiceStats.correctAnswers}
+                  </div>
+                  <div className="text-xs text-gray-500">Correct</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {Math.round((gameState.practiceStats.correctAnswers / Math.max(gameState.practiceStats.totalAnswered, 1)) * 100)}%
+                  </div>
+                  <div className="text-xs text-gray-500">Accuracy</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {gameState.practiceStats.currentStreak}
+                  </div>
+                  <div className="text-xs text-gray-500">Streak</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Enhanced Answer Reveal */}
         {gameState.phase === 'answer-reveal' && (
           <AnswerReveal
             currentQuestion={gameState.currentQuestion}
             selectedAnswer={gameState.selectedAnswer}
-            scores={gameState.scores}
+            scores={isPracticeMode ? undefined : gameState.scores}
             currentTeam={teamId}
             currentQuestionIndex={gameState.currentQuestionIndex}
-            totalQuestions={sampleQuestions.length}
+            totalQuestions={gameState.questions.length}
             onNextQuestion={gameState.handleNextQuestion}
+            isPracticeMode={isPracticeMode}
+            practiceStats={isPracticeMode ? gameState.practiceStats : undefined}
           />
         )}
       </div>

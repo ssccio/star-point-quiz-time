@@ -14,11 +14,18 @@ interface Question {
 interface AnswerRevealProps {
   currentQuestion: Question;
   selectedAnswer: string | null;
-  scores: TeamScores;
+  scores?: TeamScores;
   currentTeam: string;
   currentQuestionIndex: number;
   totalQuestions: number;
   onNextQuestion: () => void;
+  isPracticeMode?: boolean;
+  practiceStats?: {
+    correctAnswers: number;
+    totalAnswered: number;
+    currentStreak: number;
+    bestStreak: number;
+  };
 }
 
 export const AnswerReveal = ({
@@ -28,7 +35,9 @@ export const AnswerReveal = ({
   currentTeam,
   currentQuestionIndex,
   totalQuestions,
-  onNextQuestion
+  onNextQuestion,
+  isPracticeMode = false,
+  practiceStats
 }: AnswerRevealProps) => {
   return (
     <div className="space-y-4">
@@ -74,22 +83,67 @@ export const AnswerReveal = ({
             <p className="text-gray-600 mt-1">{currentQuestion.explanation}</p>
           </div>
           
-          {/* Points earned */}
+          {/* Practice vs Competition feedback */}
           <div className="text-center">
-            {selectedAnswer === currentQuestion.correctAnswer ? (
-              <div className="text-green-600 font-bold text-xl">
-                ✓ Correct! +20 points
-              </div>
+            {isPracticeMode ? (
+              selectedAnswer === currentQuestion.correctAnswer ? (
+                <div className="text-green-600 font-bold text-xl">
+                  🎉 Excellent! You got it right!
+                </div>
+              ) : (
+                <div className="text-blue-600 font-bold text-xl">
+                  📚 Great learning opportunity!
+                </div>
+              )
             ) : (
-              <div className="text-red-600 font-bold text-xl">
-                ✗ Incorrect. No points earned
-              </div>
+              selectedAnswer === currentQuestion.correctAnswer ? (
+                <div className="text-green-600 font-bold text-xl">
+                  ✓ Correct! +20 points
+                </div>
+              ) : (
+                <div className="text-red-600 font-bold text-xl">
+                  ✗ Incorrect. No points earned
+                </div>
+              )
             )}
           </div>
         </div>
       </Card>
 
-      <ScoreBoard scores={scores} currentTeam={currentTeam} />
+      {isPracticeMode && practiceStats ? (
+        <Card className="p-4">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Your Learning Progress</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600">
+                  {practiceStats.correctAnswers}
+                </div>
+                <div className="text-sm text-gray-600">Correct Answers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600">
+                  {Math.round((practiceStats.correctAnswers / Math.max(practiceStats.totalAnswered, 1)) * 100)}%
+                </div>
+                <div className="text-sm text-gray-600">Accuracy</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600">
+                  {practiceStats.currentStreak}
+                </div>
+                <div className="text-sm text-gray-600">Current Streak</div>
+              </div>
+            </div>
+            {practiceStats.currentStreak >= 3 && (
+              <div className="mt-3 text-sm text-green-600 font-medium">
+                🔥 You're on fire! Keep it up!
+              </div>
+            )}
+          </div>
+        </Card>
+      ) : scores ? (
+        <ScoreBoard scores={scores} currentTeam={currentTeam} />
+      ) : null}
 
       <Button
         onClick={onNextQuestion}

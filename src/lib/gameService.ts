@@ -70,14 +70,13 @@ export { isSupabaseConfigured };
 
 export const gameService = {
   // Host creates a new game
-  async createGame(hostName: string): Promise<{ game: Game; player: Player; gameCode: string }> {
+  async createGame(hostName: string): Promise<{ game: Game; gameCode: string }> {
     const gameCode = generateGameCode()
     const hostId = crypto.randomUUID()
 
     if (isDevelopmentMode) {
       // Mock implementation for development
       const gameId = crypto.randomUUID()
-      const playerId = crypto.randomUUID()
       const now = new Date().toISOString()
 
       const game: Game = {
@@ -90,22 +89,11 @@ export const gameService = {
         updated_at: now
       }
 
-      const player: Player = {
-        id: playerId,
-        game_id: gameId,
-        name: hostName,
-        team: 'adah',
-        score: 0,
-        is_host: true,
-        joined_at: now
-      }
-
-      // Store in mock store
+      // Store in mock store - no player record for host
       mockStore.games.set(gameId, game)
-      mockStore.players.set(playerId, player)
       mockStore.gamesByCode.set(gameCode, gameId)
 
-      return { game, player, gameCode }
+      return { game, gameCode }
     }
 
     // Real Supabase implementation
@@ -124,23 +112,8 @@ export const gameService = {
       throw new GameServiceError(`Failed to create game: ${gameError.message}`, gameError.code);
     }
 
-    // Create host player
-    const { data: player, error: playerError } = await client
-      .from('players')
-      .insert({
-        game_id: game.id,
-        name: hostName,
-        team: 'adah', // Host gets first team
-        is_host: true
-      })
-      .select()
-      .single()
-
-    if (playerError) {
-      throw new GameServiceError(`Failed to create player: ${playerError.message}`, playerError.code);
-    }
-
-    return { game, player, gameCode }
+    // Don't create a player record for the host - they're the admin, not a player
+    return { game, gameCode }
   },
 
   // Player joins existing game
