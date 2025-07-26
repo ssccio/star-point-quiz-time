@@ -218,8 +218,10 @@ const Admin = () => {
   const handleStartGame = async () => {
     if (!adminState.selectedGame) return;
 
+    console.log("Admin starting game:", adminState.selectedGame.id);
     try {
       await gameService.startGame(adminState.selectedGame.id);
+      console.log("Game started successfully");
 
       // Update local game state to reflect the change
       setAdminState((prev) => ({
@@ -234,6 +236,7 @@ const Admin = () => {
         error: null,
       }));
     } catch (error) {
+      console.error("Failed to start game:", error);
       setAdminState((prev) => ({
         ...prev,
         error: error instanceof Error ? error.message : "Failed to start game",
@@ -533,7 +536,7 @@ const Admin = () => {
           </p>
           <div className="flex space-x-4">
             <button
-              onClick={() => navigate("/admin/qr-codes")}
+              onClick={() => window.open("/admin/qr-codes", "_blank")}
               className="flex items-center space-x-2 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
             >
               <Printer className="w-4 h-4" />

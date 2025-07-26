@@ -1,16 +1,15 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Star, Users, Clock, Crown, Copy } from "lucide-react";
+import { TEAMS, TEAM_COLORS } from "@/utils/constants";
+import { gameService } from "@/lib/gameService";
+import type { Database } from "@/lib/supabase";
+import { toast } from "sonner";
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Star, Users, Clock, Crown, Copy } from 'lucide-react';
-import { TEAMS, TEAM_COLORS } from '@/utils/constants';
-import { gameService } from '@/lib/gameService';
-import type { Database } from '@/lib/supabase';
-import { toast } from 'sonner';
-
-type Player = Database['public']['Tables']['players']['Row'];
-type Game = Database['public']['Tables']['games']['Row'];
+type Player = Database["public"]["Tables"]["players"]["Row"];
+type Game = Database["public"]["Tables"]["games"]["Row"];
 
 const Lobby = () => {
   const navigate = useNavigate();
@@ -18,21 +17,21 @@ const Lobby = () => {
   const [game, setGame] = useState<Game | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Get game data from localStorage
-  const gameData = JSON.parse(localStorage.getItem('gameData') || '{}');
-  
+  const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
+
   useEffect(() => {
     const { gameId, playerId } = gameData;
-    
+
     if (!gameId || !playerId) {
-      navigate('/');
+      navigate("/");
       return;
     }
 
     loadGameData();
     const subscriptions = setupRealTimeSubscriptions();
-    
+
     return () => {
       // Cleanup subscriptions
       subscriptions.playersSubscription?.unsubscribe();
@@ -44,36 +43,35 @@ const Lobby = () => {
     try {
       const [gameResult, playersResult] = await Promise.all([
         gameService.getGame(gameData.gameCode),
-        gameService.getPlayers(gameData.gameId)
+        gameService.getPlayers(gameData.gameId),
       ]);
 
       if (gameResult) {
         setGame(gameResult);
-        
+
         // If game is already active when loading, redirect immediately
-        if (gameResult.status === 'active') {
-          toast.success('Game is already active! Joining...');
-          navigate('/game', { 
-            state: { 
+        if (gameResult.status === "active") {
+          toast.success("Game is already active! Joining...");
+          navigate("/game", {
+            state: {
               playerName: gameData.playerName,
-              team: gameData.team 
-            } 
+              team: gameData.team,
+            },
           });
           return;
         }
       }
-      
+
       setPlayers(playersResult);
-      
+
       // Find current player
-      const player = playersResult.find(p => p.id === gameData.playerId);
+      const player = playersResult.find((p) => p.id === gameData.playerId);
       if (player) {
         setCurrentPlayer(player);
       }
-      
     } catch (error) {
-      console.error('Error loading game data:', error);
-      toast.error('Failed to load game data');
+      console.error("Error loading game data:", error);
+      toast.error("Failed to load game data");
     } finally {
       setIsLoading(false);
     }
@@ -81,47 +79,55 @@ const Lobby = () => {
 
   const setupRealTimeSubscriptions = () => {
     // Subscribe to player updates
-    const playersSubscription = gameService.subscribeToPlayers(gameData.gameId, (updatedPlayers) => {
-      setPlayers(updatedPlayers);
-    });
+    const playersSubscription = gameService.subscribeToPlayers(
+      gameData.gameId,
+      (updatedPlayers) => {
+        setPlayers(updatedPlayers);
+      },
+    );
 
     // Subscribe to game status updates
-    const gameSubscription = gameService.subscribeToGame(gameData.gameId, (updatedGame) => {
-      setGame(updatedGame);
-      
-      // If game starts, navigate to game page
-      if (updatedGame.status === 'active') {
-        toast.success('Game is starting!');
-        navigate('/game', { 
-          state: { 
-            playerName: currentPlayer?.name || gameData.playerName,
-            team: currentPlayer?.team || gameData.team 
-          } 
-        });
-      }
-    });
+    const gameSubscription = gameService.subscribeToGame(
+      gameData.gameId,
+      (updatedGame) => {
+        console.log("Lobby received game update:", updatedGame);
+        setGame(updatedGame);
+
+        // If game starts, navigate to game page
+        if (updatedGame.status === "active") {
+          console.log("Game started! Navigating to game page...");
+          toast.success("Game is starting!");
+          navigate("/game", {
+            state: {
+              playerName: currentPlayer?.name || gameData.playerName,
+              team: currentPlayer?.team || gameData.team,
+            },
+          });
+        }
+      },
+    );
 
     return { playersSubscription, gameSubscription };
   };
 
   const startGame = async () => {
     if (!currentPlayer?.is_host || !game) return;
-    
+
     try {
       await gameService.startGame(game.id);
-      toast.success('Game started!');
+      toast.success("Game started!");
     } catch (error) {
-      console.error('Error starting game:', error);
-      toast.error('Failed to start game');
+      console.error("Error starting game:", error);
+      toast.error("Failed to start game");
     }
   };
 
   const copyGameCode = async () => {
     try {
       await navigator.clipboard.writeText(gameData.gameCode);
-      toast.success('Game code copied!');
+      toast.success("Game code copied!");
     } catch (error) {
-      toast.error('Failed to copy game code');
+      toast.error("Failed to copy game code");
     }
   };
 
@@ -139,16 +145,19 @@ const Lobby = () => {
   }
 
   if (!currentPlayer || !game) {
-    navigate('/');
+    navigate("/");
     return null;
   }
 
   const team = TEAMS[currentPlayer.team as keyof typeof TEAMS];
-  const teamPlayers = players.filter(p => p.team === currentPlayer.team);
-  const playersByTeam = players.reduce((acc, player) => {
-    acc[player.team] = (acc[player.team] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const teamPlayers = players.filter((p) => p.team === currentPlayer.team);
+  const playersByTeam = players.reduce(
+    (acc, player) => {
+      acc[player.team] = (acc[player.team] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
@@ -157,24 +166,30 @@ const Lobby = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div 
+              <div
                 className="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg"
                 style={{ backgroundColor: TEAM_COLORS[team.id] }}
               >
                 <Star className="w-8 h-8" />
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">Team {team.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Team {team.name}
+                </h1>
                 <p className="text-lg text-gray-600">{team.heroine}</p>
                 <p className="text-sm text-gray-500">{team.meaning}</p>
-                <p className="text-xs text-gray-400 mt-1">{currentPlayer.name}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {currentPlayer.name}
+                </p>
               </div>
             </div>
-            
+
             <div className="text-right space-y-2">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500">Game Code:</span>
-                <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">{gameData.gameCode}</code>
+                <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
+                  {gameData.gameCode}
+                </code>
                 <Button variant="ghost" size="sm" onClick={copyGameCode}>
                   <Copy className="h-3 w-3" />
                 </Button>
@@ -194,7 +209,9 @@ const Lobby = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-center text-amber-600">
               <Clock className="w-6 h-6 mr-2" />
-              <span className="text-lg font-medium">Waiting for game to start...</span>
+              <span className="text-lg font-medium">
+                Waiting for game to start...
+              </span>
             </div>
             <p className="text-gray-600">
               Get ready for questions about Rob Morris and Eastern Star history!
@@ -211,18 +228,23 @@ const Lobby = () => {
               <span>{teamPlayers.length}</span>
             </div>
           </div>
-          
+
           <div className="space-y-3">
             {teamPlayers.map((player) => (
-              <div key={player.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div
+                key={player.id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex items-center space-x-3">
-                  <div 
+                  <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
                     style={{ backgroundColor: TEAM_COLORS[team.id] }}
                   >
                     {player.name.charAt(0)}
                   </div>
-                  <span className="font-medium text-gray-900">{player.name}</span>
+                  <span className="font-medium text-gray-900">
+                    {player.name}
+                  </span>
                   {player.id === currentPlayer.id && (
                     <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                       You
@@ -235,7 +257,10 @@ const Lobby = () => {
                   )}
                 </div>
                 <span className="text-xs text-gray-500">
-                  {new Date(player.joined_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(player.joined_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </div>
             ))}
@@ -244,15 +269,22 @@ const Lobby = () => {
 
         {/* All Teams Overview */}
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">All Teams</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            All Teams
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
             {Object.entries(TEAMS).map(([teamId, teamInfo]) => (
-              <div key={teamId} className="text-center p-3 rounded-lg bg-gray-50">
-                <div 
+              <div
+                key={teamId}
+                className="text-center p-3 rounded-lg bg-gray-50"
+              >
+                <div
                   className="w-8 h-8 rounded-full mx-auto mb-2"
                   style={{ backgroundColor: teamInfo.color }}
                 />
-                <div className="text-sm font-medium text-gray-900">{teamInfo.name}</div>
+                <div className="text-sm font-medium text-gray-900">
+                  {teamInfo.name}
+                </div>
                 <div className="text-lg font-bold text-gray-700">
                   {playersByTeam[teamId] || 0}
                 </div>
@@ -266,7 +298,9 @@ const Lobby = () => {
         <Card className="p-6">
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-gray-900">{players.length}</div>
+              <div className="text-2xl font-bold text-gray-900">
+                {players.length}
+              </div>
               <div className="text-sm text-gray-500">Total Players</div>
             </div>
             <div>
@@ -279,14 +313,16 @@ const Lobby = () => {
         {/* Host Controls */}
         {currentPlayer.is_host ? (
           <div className="space-y-4">
-            <Button 
+            <Button
               onClick={startGame}
               className="w-full h-14 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700"
               disabled={players.length < 2}
             >
-              {players.length < 2 ? 'Waiting for more players...' : 'Start Game'}
+              {players.length < 2
+                ? "Waiting for more players..."
+                : "Start Game"}
             </Button>
-            
+
             {players.length < 2 && (
               <div className="text-center text-sm text-amber-600">
                 Need at least 2 players to start the game
@@ -296,9 +332,12 @@ const Lobby = () => {
         ) : (
           <Card className="p-6 text-center">
             <div className="space-y-2">
-              <div className="text-amber-600 font-medium">Waiting for host to start the game...</div>
+              <div className="text-amber-600 font-medium">
+                Waiting for host to start the game...
+              </div>
               <div className="text-sm text-gray-500">
-                The game will begin automatically when the host clicks "Start Game"
+                The game will begin automatically when the host clicks "Start
+                Game"
               </div>
             </div>
           </Card>
