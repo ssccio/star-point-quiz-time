@@ -1,19 +1,18 @@
-
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Star, Users } from 'lucide-react';
-import { TEAMS, TEAM_COLORS } from '@/utils/constants';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Star, Users } from "lucide-react";
+import { TEAMS, TEAM_COLORS } from "@/utils/constants";
 
 interface LandingProps {
   preselectedTeam?: string;
 }
 
 const Landing = ({ preselectedTeam }: LandingProps) => {
-  const [playerName, setPlayerName] = useState('');
-  const [email, setEmail] = useState('');
+  const [playerName, setPlayerName] = useState("");
+  const [email, setEmail] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const navigate = useNavigate();
 
@@ -21,49 +20,52 @@ const Landing = ({ preselectedTeam }: LandingProps) => {
 
   const handleJoinGame = async () => {
     if (!playerName.trim() || playerName.length < 2) return;
-    
+
     setIsJoining(true);
-    
+
     // Simulate joining process
     setTimeout(() => {
-      navigate('/lobby', { 
-        state: { 
-          playerName: playerName.trim(), 
+      navigate("/lobby", {
+        state: {
+          playerName: playerName.trim(),
           team: preselectedTeam,
-          email: email.trim() || undefined 
-        } 
+          email: email.trim() || undefined,
+        },
       });
     }, 1000);
   };
 
   if (!team) {
-    navigate('/');
+    navigate("/");
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+      <Card className="w-full max-w-md space-y-6 p-8">
         {/* Team Header */}
-        <div className="text-center space-y-4">
-          <div 
-            className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg"
+        <div className="space-y-4 text-center">
+          <div
+            className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-bold text-white shadow-lg"
             style={{ backgroundColor: TEAM_COLORS[team.id] }}
           >
-            <Star className="w-8 h-8" />
+            <Star className="h-8 w-8" />
           </div>
-          
+
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{team.name}</h1>
             <p className="text-lg text-gray-600">{team.heroine}</p>
-            <p className="text-sm text-gray-500 mt-1">Team {team.name}</p>
+            <p className="mt-1 text-sm text-gray-500">Team {team.name}</p>
           </div>
         </div>
 
         {/* Join Form */}
         <div className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="name"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               First Name & Last Initial *
             </label>
             <Input
@@ -72,14 +74,19 @@ const Landing = ({ preselectedTeam }: LandingProps) => {
               placeholder="John D."
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              className="text-lg h-12"
+              className="h-12 text-lg"
               maxLength={20}
             />
-            <p className="text-xs text-gray-500 mt-1">Minimum 2 characters required</p>
+            <p className="mt-1 text-xs text-gray-500">
+              Minimum 2 characters required
+            </p>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               Email (Optional)
             </label>
             <Input
@@ -95,19 +102,22 @@ const Landing = ({ preselectedTeam }: LandingProps) => {
           <Button
             onClick={handleJoinGame}
             disabled={playerName.trim().length < 2 || isJoining}
-            className="w-full min-h-[60px] text-lg font-semibold px-6 py-4"
-            style={{ 
-              backgroundColor: playerName.trim().length >= 2 ? TEAM_COLORS[team.id] : undefined 
+            className="min-h-[60px] w-full px-6 py-4 text-lg font-semibold"
+            style={{
+              backgroundColor:
+                playerName.trim().length >= 2
+                  ? TEAM_COLORS[team.id]
+                  : undefined,
             }}
           >
             {isJoining ? (
               <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <div className="mr-2 h-5 w-5 animate-spin rounded-full border-b-2 border-white"></div>
                 Joining Game...
               </>
             ) : (
               <>
-                <Users className="w-5 h-5 mr-2" />
+                <Users className="mr-2 h-5 w-5" />
                 Join Game
               </>
             )}
@@ -115,7 +125,7 @@ const Landing = ({ preselectedTeam }: LandingProps) => {
         </div>
 
         {/* Instructions */}
-        <div className="text-center text-sm text-gray-500 space-y-1">
+        <div className="space-y-1 text-center text-sm text-gray-500">
           <p>You'll join the {team.name} team</p>
           <p>Get ready for Eastern Star trivia!</p>
         </div>

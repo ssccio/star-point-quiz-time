@@ -6,7 +6,7 @@ import { TEAMS } from "./utils/constants";
 // Test individual components to isolate the issue
 const ComponentTest = () => {
   const team = TEAMS.adah;
-  
+
   return (
     <div className="p-4">
       <h2>Testing Game Components</h2>
@@ -23,7 +23,7 @@ const ComponentTest = () => {
 
 const DebugApp = () => {
   return (
-    <div style={{ padding: '20px', backgroundColor: 'lightgreen' }}>
+    <div style={{ padding: "20px", backgroundColor: "lightgreen" }}>
       <h1>Debug App - Component Test</h1>
       <BrowserRouter>
         <Routes>

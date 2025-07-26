@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +21,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: (failureCount, error) => {
         // Don't retry on 4xx errors
-        if (error && 'status' in error && typeof error.status === 'number') {
+        if (error && "status" in error && typeof error.status === "number") {
           return error.status >= 500 && failureCount < 3;
         }
         return failureCount < 3;

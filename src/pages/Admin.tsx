@@ -164,7 +164,7 @@ const Admin = () => {
             players: updatedPlayers,
             teamData: newTeamData,
           }));
-        },
+        }
       );
 
       const gameSubscription = gameService.subscribeToGame(
@@ -174,7 +174,7 @@ const Admin = () => {
             ...prev,
             selectedGame: updatedGame,
           }));
-        },
+        }
       );
 
       return () => {
@@ -271,7 +271,7 @@ const Admin = () => {
 
     if (
       !confirm(
-        "Are you sure you want to end this game? This will send all players to the results page.",
+        "Are you sure you want to end this game? This will send all players to the results page."
       )
     ) {
       return;
@@ -361,7 +361,7 @@ const Admin = () => {
             players: updatedPlayers,
             teamData: newTeamData,
           }));
-        },
+        }
       );
 
       const gameSubscription = gameService.subscribeToGame(
@@ -371,7 +371,7 @@ const Admin = () => {
             ...prev,
             selectedGame: updatedGame,
           }));
-        },
+        }
       );
 
       setShowCreateGame(false);
@@ -393,7 +393,7 @@ const Admin = () => {
   const deleteGame = async (game: Game) => {
     if (
       !confirm(
-        `Are you sure you want to delete game ${game.game_code}? This will permanently remove all game data and cannot be undone.`,
+        `Are you sure you want to delete game ${game.game_code}? This will permanently remove all game data and cannot be undone.`
       )
     ) {
       return;
@@ -432,7 +432,7 @@ const Admin = () => {
       toast.success(`Game ${game.game_code} deleted successfully!`);
     } catch (error) {
       toast.error(
-        `Failed to delete game: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Failed to delete game: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   };
@@ -446,7 +446,7 @@ const Admin = () => {
     setIsCreatingGame(true);
     try {
       const { game, gameCode: newGameCode } = await gameService.createGame(
-        hostName.trim(),
+        hostName.trim()
       );
 
       // Set the created game as the current game
@@ -481,11 +481,11 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="max-w-6xl mx-auto py-6 space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6 py-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Monitor className="w-8 h-8 text-indigo-600" />
+            <Monitor className="h-8 w-8 text-indigo-600" />
             <h1 className="text-3xl font-bold text-gray-900">
               Game Control Dashboard
             </h1>
@@ -525,21 +525,21 @@ const Admin = () => {
         </div>
 
         {/* QR Code Generation Section */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
-          <h2 className="text-xl font-semibold mb-4 flex items-center space-x-2">
-            <QrCode className="w-6 h-6 text-indigo-600" />
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <h2 className="mb-4 flex items-center space-x-2 text-xl font-semibold">
+            <QrCode className="h-6 w-6 text-indigo-600" />
             <span>Table QR Codes</span>
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="mb-4 text-gray-600">
             Generate printable QR codes for each team table. Print these at home
             before the event.
           </p>
           <div className="flex space-x-4">
             <button
               onClick={() => window.open("/admin/qr-codes", "_blank")}
-              className="flex items-center space-x-2 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              className="flex items-center space-x-2 rounded-md bg-indigo-600 px-6 py-2 text-white hover:bg-indigo-700"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="h-4 w-4" />
               <span>Generate All Team QR Codes</span>
             </button>
           </div>
@@ -547,10 +547,10 @@ const Admin = () => {
 
         {/* Game List Management - Show when switching games */}
         {adminState.showGameList && (
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold flex items-center space-x-2">
-                <Monitor className="w-6 h-6 text-indigo-600" />
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="flex items-center space-x-2 text-xl font-semibold">
+                <Monitor className="h-6 w-6 text-indigo-600" />
                 <span>Available Games</span>
               </h2>
               <Button
@@ -561,19 +561,19 @@ const Admin = () => {
                 }
                 className="flex items-center space-x-1"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="h-4 w-4" />
                 <span>Back</span>
               </Button>
             </div>
 
             {adminState.loading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                 <span>Loading games...</span>
               </div>
             ) : adminState.availableGames.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Monitor className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <div className="py-8 text-center text-gray-500">
+                <Monitor className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                 <p>No games found</p>
                 <p className="text-sm">Create a new game to get started</p>
               </div>
@@ -582,11 +582,11 @@ const Admin = () => {
                 {adminState.availableGames.map((game) => (
                   <div
                     key={game.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between rounded-lg bg-gray-50 p-4 transition-colors hover:bg-gray-100"
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
-                        <code className="bg-white px-3 py-1 rounded text-lg font-mono font-bold">
+                        <code className="rounded bg-white px-3 py-1 font-mono text-lg font-bold">
                           {game.game_code}
                         </code>
                         <Badge
@@ -597,9 +597,9 @@ const Admin = () => {
                           {game.status.toUpperCase()}
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                      <div className="mt-2 flex items-center space-x-4 text-sm text-gray-600">
                         <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="h-4 w-4" />
                           <span>
                             {new Date(game.created_at).toLocaleDateString()}
                           </span>
@@ -627,9 +627,9 @@ const Admin = () => {
                         onClick={() => deleteGame(game)}
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -637,7 +637,7 @@ const Admin = () => {
               </div>
             )}
 
-            <div className="mt-6 pt-4 border-t">
+            <div className="mt-6 border-t pt-4">
               <Button
                 onClick={() => {
                   setAdminState((prev) => ({ ...prev, showGameList: false }));
@@ -646,7 +646,7 @@ const Admin = () => {
                 variant="outline"
                 className="w-full"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Create New Game Instead
               </Button>
             </div>
@@ -655,13 +655,13 @@ const Admin = () => {
 
         {/* Game Management */}
         {!adminState.selectedGame && !adminState.showGameList && (
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
             <div className="space-y-6">
               {showCreateGame ? (
                 <>
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold flex items-center space-x-2">
-                      <Crown className="w-6 h-6 text-indigo-600" />
+                    <h2 className="flex items-center space-x-2 text-xl font-semibold">
+                      <Crown className="h-6 w-6 text-indigo-600" />
                       <span>Create New Game</span>
                     </h2>
                     <Button
@@ -743,7 +743,7 @@ const Admin = () => {
                     </div>
 
                     <div className="text-center">
-                      <div className="text-sm text-gray-500 mb-2">or</div>
+                      <div className="mb-2 text-sm text-gray-500">or</div>
                       <Button
                         onClick={loadAvailableGames}
                         variant="outline"
@@ -768,9 +768,9 @@ const Admin = () => {
               )}
 
               {adminState.error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                <div className="rounded-md border border-red-200 bg-red-50 p-4">
                   <div className="flex items-center">
-                    <AlertTriangle className="w-5 h-5 text-red-500 mr-3" />
+                    <AlertTriangle className="mr-3 h-5 w-5 text-red-500" />
                     <p className="text-red-700">{adminState.error}</p>
                   </div>
                 </div>
@@ -781,10 +781,10 @@ const Admin = () => {
 
         {/* Active Game Status - Show when game is connected */}
         {adminState.selectedGame && gameCode && (
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white shadow-lg">
+          <div className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Game Active</h2>
+                <h2 className="mb-2 text-2xl font-bold">Game Active</h2>
                 <p className="text-indigo-100">
                   Announce this code to your players:{" "}
                   <span className="font-mono text-3xl font-bold text-white">
@@ -817,7 +817,9 @@ const Admin = () => {
             totalConnected={totalConnected}
             totalPlayers={totalPlayers}
             timerRemaining={60} // TODO: Implement real timer
-            currentQuestion={adminState.selectedGame.current_question || 0}
+            currentQuestion={
+              (adminState.selectedGame.current_question || 1) - 1
+            }
             totalQuestions={totalQuestions}
           />
         )}
@@ -830,7 +832,7 @@ const Admin = () => {
               Object.entries(adminState.teamData).map(([team, data]) => [
                 team,
                 data.scores,
-              ]),
+              ])
             )}
             onAdjustScore={adjustScore}
           />
@@ -851,8 +853,8 @@ const Admin = () => {
 
         {/* Game Info Display */}
         {adminState.selectedGame && (
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
-            <h3 className="font-semibold mb-2">Game Information</h3>
+          <div className="rounded-lg border bg-white p-4 shadow-sm">
+            <h3 className="mb-2 font-semibold">Game Information</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="font-medium">Game Code:</span>{" "}

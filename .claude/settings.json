@@ -2,7 +2,7 @@
   "permissions": {
     "allow": [
       "Read",
-      "Edit", 
+      "Edit",
       "Write",
       "Bash(npm:*)",
       "Bash(git:*)",
@@ -12,9 +12,6 @@
       "Bash(ls:*)",
       "Bash(cat:*)"
     ],
-    "deny": [
-      "Bash(rm -rf:*)",
-      "Bash(sudo:*)"
-    ]
+    "deny": ["Bash(rm -rf:*)", "Bash(sudo:*)"]
   }
 }

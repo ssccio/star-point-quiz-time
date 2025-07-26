@@ -1,0 +1,67 @@
+repos:
+  # Basic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+        exclude: '\.md$'
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: check-json
+        files: '\.json$'
+        exclude: 'tsconfig.*\.json$'
+      - id: check-yaml
+        files: '\.ya?ml$'
+      - id: pretty-format-json
+        args: ["--autofix", "--indent=2"]
+        files: '\.json$'
+        exclude: '(package-lock\.json|tsconfig.*\.json)$'
+
+  # Prettier for code formatting (using local installation)
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: npx prettier
+        language: system
+        files: '\.(js|jsx|ts|tsx|json|css|scss|md|yaml|yml)$'
+        exclude: 'package-lock\.json$'
+        args: ["--write"]
+
+  # ESLint for TypeScript/React linting
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: npx eslint
+        language: system
+        files: '\.(js|jsx|ts|tsx)$'
+        exclude: "node_modules/"
+        args: ["--fix"]
+
+  # TypeScript type checking
+  - repo: local
+    hooks:
+      - id: tsc
+        name: typescript-check
+        entry: npx tsc
+        language: system
+        files: '\.(ts|tsx)$'
+        exclude: "node_modules/"
+        args: ["--noEmit", "--skipLibCheck"]
+        pass_filenames: false
+
+  # Security scanning with Semgrep
+  - repo: https://github.com/returntocorp/semgrep
+    rev: v1.89.0
+    hooks:
+      - id: semgrep
+        args: ["--config=auto", "--error"]
+        exclude: '(node_modules/|\.git/|dist/|build/)'
+        files: '\.(js|jsx|ts|tsx)$'

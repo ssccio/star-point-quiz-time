@@ -83,7 +83,7 @@ const Lobby = () => {
       gameData.gameId,
       (updatedPlayers) => {
         setPlayers(updatedPlayers);
-      },
+      }
     );
 
     // Subscribe to game status updates
@@ -104,7 +104,7 @@ const Lobby = () => {
             },
           });
         }
-      },
+      }
     );
 
     return { playersSubscription, gameSubscription };
@@ -133,10 +133,10 @@ const Lobby = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
         <Card className="p-8">
           <div className="flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-indigo-600"></div>
             <span>Loading lobby...</span>
           </div>
         </Card>
@@ -156,21 +156,21 @@ const Lobby = () => {
       acc[player.team] = (acc[player.team] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>,
+    {} as Record<string, number>
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="max-w-2xl mx-auto py-8 space-y-6">
+      <div className="mx-auto max-w-2xl space-y-6 py-8">
         {/* Game Header */}
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div
-                className="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg"
+                className="flex h-16 w-16 items-center justify-center rounded-full text-white shadow-lg"
                 style={{ backgroundColor: TEAM_COLORS[team.id] }}
               >
-                <Star className="w-8 h-8" />
+                <Star className="h-8 w-8" />
               </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900">
@@ -178,16 +178,16 @@ const Lobby = () => {
                 </h1>
                 <p className="text-lg text-gray-600">{team.heroine}</p>
                 <p className="text-sm text-gray-500">{team.meaning}</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="mt-1 text-xs text-gray-400">
                   {currentPlayer.name}
                 </p>
               </div>
             </div>
 
-            <div className="text-right space-y-2">
+            <div className="space-y-2 text-right">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500">Game Code:</span>
-                <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
+                <code className="rounded bg-gray-100 px-2 py-1 font-mono text-sm">
                   {gameData.gameCode}
                 </code>
                 <Button variant="ghost" size="sm" onClick={copyGameCode}>
@@ -208,7 +208,7 @@ const Lobby = () => {
         <Card className="p-6 text-center">
           <div className="space-y-4">
             <div className="flex items-center justify-center text-amber-600">
-              <Clock className="w-6 h-6 mr-2" />
+              <Clock className="mr-2 h-6 w-6" />
               <span className="text-lg font-medium">
                 Waiting for game to start...
               </span>
@@ -221,10 +221,10 @@ const Lobby = () => {
 
         {/* Team Members */}
         <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Your Team</h2>
             <div className="flex items-center text-gray-500">
-              <Users className="w-4 h-4 mr-1" />
+              <Users className="mr-1 h-4 w-4" />
               <span>{teamPlayers.length}</span>
             </div>
           </div>
@@ -233,11 +233,11 @@ const Lobby = () => {
             {teamPlayers.map((player) => (
               <div
                 key={player.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
               >
                 <div className="flex items-center space-x-3">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold text-white"
                     style={{ backgroundColor: TEAM_COLORS[team.id] }}
                   >
                     {player.name.charAt(0)}
@@ -246,12 +246,12 @@ const Lobby = () => {
                     {player.name}
                   </span>
                   {player.id === currentPlayer.id && (
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800">
                       You
                     </span>
                   )}
                   {player.is_host && (
-                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+                    <span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800">
                       Host
                     </span>
                   )}
@@ -269,17 +269,17 @@ const Lobby = () => {
 
         {/* All Teams Overview */}
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">
             All Teams
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
             {Object.entries(TEAMS).map(([teamId, teamInfo]) => (
               <div
                 key={teamId}
-                className="text-center p-3 rounded-lg bg-gray-50"
+                className="rounded-lg bg-gray-50 p-3 text-center"
               >
                 <div
-                  className="w-8 h-8 rounded-full mx-auto mb-2"
+                  className="mx-auto mb-2 h-8 w-8 rounded-full"
                   style={{ backgroundColor: teamInfo.color }}
                 />
                 <div className="text-sm font-medium text-gray-900">
@@ -315,7 +315,7 @@ const Lobby = () => {
           <div className="space-y-4">
             <Button
               onClick={startGame}
-              className="w-full h-14 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700"
+              className="h-14 w-full bg-indigo-600 text-lg font-semibold hover:bg-indigo-700"
               disabled={players.length < 2}
             >
               {players.length < 2
@@ -332,7 +332,7 @@ const Lobby = () => {
         ) : (
           <Card className="p-6 text-center">
             <div className="space-y-2">
-              <div className="text-amber-600 font-medium">
+              <div className="font-medium text-amber-600">
                 Waiting for host to start the game...
               </div>
               <div className="text-sm text-gray-500">
@@ -344,7 +344,7 @@ const Lobby = () => {
         )}
 
         {/* Instructions */}
-        <div className="text-center text-sm text-gray-500 space-y-1">
+        <div className="space-y-1 text-center text-sm text-gray-500">
           <p>Share the game code with others to join</p>
           <p>Make sure your device stays connected to the internet</p>
         </div>

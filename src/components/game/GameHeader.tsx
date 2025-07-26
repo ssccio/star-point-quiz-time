@@ -1,5 +1,5 @@
-import { Card } from '@/components/ui/card';
-import { TEAM_COLORS } from '@/utils/constants';
+import { Card } from "@/components/ui/card";
+import { TEAM_COLORS } from "@/utils/constants";
 
 interface Team {
   id: string;
@@ -17,20 +17,22 @@ interface GameHeaderProps {
   teamScore: number;
 }
 
-export const GameHeader = ({ 
-  team, 
-  playerName, 
-  currentQuestionIndex, 
-  totalQuestions, 
-  teamScore 
+export const GameHeader = ({
+  team,
+  playerName,
+  currentQuestionIndex,
+  totalQuestions,
+  teamScore,
 }: GameHeaderProps) => {
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div 
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
-            style={{ backgroundColor: TEAM_COLORS[team.id as keyof typeof TEAM_COLORS] }}
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
+            style={{
+              backgroundColor: TEAM_COLORS[team.id as keyof typeof TEAM_COLORS],
+            }}
           >
             {team.name.charAt(0)}
           </div>

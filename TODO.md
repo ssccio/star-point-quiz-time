@@ -3,11 +3,11 @@
 ## Immediate Priority (Rob Morris Night)
 
 ### YAML Question System Implementation
+
 - [ ] **Move questions from TypeScript to YAML files**
   - Create `src/data/questions/` directory structure
   - Implement YAML loading system
   - Support multiple question sets via file selection
-  
 - [ ] **Expand Rob Morris Content**
   - Need 15-20 easy questions for dinner event
   - Focus: Rob Morris biography, founding stories, basic Eastern Star history
@@ -16,6 +16,7 @@
   - All questions should be beginner-friendly
 
 ### Question File Structure (Proposed)
+
 ```
 src/data/questions/
 ├── rob-morris-easy.yaml
@@ -27,6 +28,7 @@ src/data/questions/
 ## School of Instruction Integration (Fall)
 
 ### Grand Chapter Q&A Integration
+
 - [ ] **YAML format for Grand Chapter questions**
   - Convert official School of Instruction questions to YAML
   - Maintain official explanations and sources
@@ -40,6 +42,7 @@ src/data/questions/
 ## Long-term Engagement Vision
 
 ### Home Practice System
+
 - [ ] **Individual practice mode enhancement**
   - Track personal progress and scores
   - Review missed questions
@@ -55,6 +58,7 @@ src/data/questions/
 ### Educational Applications
 
 #### Officer Training
+
 - [ ] **Role-specific question sets**
   - Worthy Matron responsibilities and ritual
   - Worthy Patron duties and procedures
@@ -62,6 +66,7 @@ src/data/questions/
   - Meeting procedures and protocol
 
 #### New Member Education
+
 - [ ] **Progressive learning paths**
   - Pre-initiation basics
   - Post-initiation deeper knowledge
@@ -69,6 +74,7 @@ src/data/questions/
   - Chapter history and traditions
 
 #### Ongoing Member Development
+
 - [ ] **Seasonal content**
   - Meeting preparation quizzes
   - Special ceremony practice
@@ -78,6 +84,7 @@ src/data/questions/
 ## Technical Improvements
 
 ### Enhanced Admin Tools
+
 - [ ] **Question authoring interface**
   - Web-based question editor
   - Bulk import from spreadsheets
@@ -85,6 +92,7 @@ src/data/questions/
   - Category organization
 
 ### Accessibility & Engagement
+
 - [ ] **Mobile-first improvements**
   - Offline mode for practice
   - Push notifications for study reminders
@@ -92,6 +100,7 @@ src/data/questions/
   - Large text options
 
 ### Analytics & Insights
+
 - [ ] **Chapter engagement metrics**
   - Most challenging questions identification
   - Member participation tracking
@@ -101,18 +110,21 @@ src/data/questions/
 ## Implementation Strategy
 
 ### Phase 1: Rob Morris Night (Immediate)
+
 1. Implement YAML system
 2. Create Rob Morris question set
 3. Test at dinner event
 4. Gather feedback
 
 ### Phase 2: School of Instruction (Fall)
+
 1. Convert Grand Chapter questions to YAML
 2. Add question set switching
 3. Deploy for chapter study sessions
 4. Measure engagement vs. traditional methods
 
 ### Phase 3: Chapter Education Platform (Ongoing)
+
 1. Expand question library
 2. Add progress tracking
 3. Build admin tools for question management
@@ -121,16 +133,19 @@ src/data/questions/
 ## Success Metrics
 
 ### Immediate (Rob Morris Night)
+
 - Successful dinner event completion
 - Positive member feedback
 - Technical system stability
 
 ### Medium-term (School of Instruction)
+
 - Increased study session participation
 - Better test scores vs. previous years
 - Member engagement with home practice
 
 ### Long-term (Chapter Education)
+
 - Year-round educational tool adoption
 - New member education effectiveness
 - Officer training efficiency improvements
@@ -146,4 +161,4 @@ src/data/questions/
 
 ---
 
-*This roadmap represents the evolution from a fun dinner trivia night into a comprehensive chapter educational platform. The beauty is we can implement incrementally, proving value at each step.*
+_This roadmap represents the evolution from a fun dinner trivia night into a comprehensive chapter educational platform. The beauty is we can implement incrementally, proving value at each step._

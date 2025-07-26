@@ -5,7 +5,7 @@ class GameServiceError extends Error {
   constructor(
     message: string,
     public code?: string,
-    public statusCode?: number,
+    public statusCode?: number
   ) {
     super(message);
     this.name = "GameServiceError";
@@ -17,7 +17,7 @@ function ensureSupabaseConfigured() {
   if (!supabase) {
     throw new GameServiceError(
       "Supabase not configured. Please configure environment variables to use multiplayer features.",
-      "SUPABASE_NOT_CONFIGURED",
+      "SUPABASE_NOT_CONFIGURED"
     );
   }
   return supabase;
@@ -72,7 +72,7 @@ async function getNextAvailableTeam(gameId: string): Promise<string> {
     teamCounts[a[0] as keyof typeof teamCounts] <=
     teamCounts[b[0] as keyof typeof teamCounts]
       ? a
-      : b,
+      : b
   )[0];
 }
 
@@ -81,7 +81,7 @@ export { isSupabaseConfigured };
 export const gameService = {
   // Host creates a new game
   async createGame(
-    hostName: string,
+    hostName: string
   ): Promise<{ game: Game; gameCode: string }> {
     const gameCode = generateGameCode();
     const hostId = crypto.randomUUID();
@@ -123,7 +123,7 @@ export const gameService = {
     if (gameError) {
       throw new GameServiceError(
         `Failed to create game: ${gameError.message}`,
-        gameError.code,
+        gameError.code
       );
     }
 
@@ -135,7 +135,7 @@ export const gameService = {
   async joinGame(
     gameCode: string,
     playerName: string,
-    assignedTeam?: string,
+    assignedTeam?: string
   ): Promise<{ game: Game; player: Player }> {
     const client = ensureSupabaseConfigured();
 
@@ -151,7 +151,7 @@ export const gameService = {
       throw new GameServiceError(
         "Game not found or already started",
         "GAME_NOT_FOUND",
-        404,
+        404
       );
     }
 
@@ -173,7 +173,7 @@ export const gameService = {
     if (playerError) {
       throw new GameServiceError(
         `Failed to create player: ${playerError.message}`,
-        playerError.code,
+        playerError.code
       );
     }
 
@@ -203,7 +203,7 @@ export const gameService = {
     if (isDevelopmentMode) {
       return Array.from(mockStore.games.values()).sort(
         (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
     }
 
@@ -224,7 +224,7 @@ export const gameService = {
         .filter((player) => player.game_id === gameId)
         .sort(
           (a, b) =>
-            new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime(),
+            new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime()
         );
     }
 
@@ -261,7 +261,7 @@ export const gameService = {
         () => {
           // Refetch players when changes occur
           this.getPlayers(gameId).then(callback);
-        },
+        }
       )
       .subscribe();
   },
@@ -301,7 +301,7 @@ export const gameService = {
     playerId: string,
     questionId: number,
     answer: string,
-    isCorrect: boolean,
+    isCorrect: boolean
   ): Promise<void> {
     const client = ensureSupabaseConfigured();
 
@@ -359,7 +359,7 @@ export const gameService = {
         (payload) => {
           console.log("Game update received:", payload);
           callback(payload.new as Game);
-        },
+        }
       )
       .subscribe((status) => {
         console.log("Game subscription status:", status);
@@ -403,7 +403,7 @@ export const gameService = {
     if (error) {
       throw new GameServiceError(
         `Failed to delete game: ${error.message}`,
-        error.code,
+        error.code
       );
     }
   },
@@ -418,7 +418,7 @@ export const gameService = {
     if (isDevelopmentMode) {
       const game = mockStore.games.get(gameId);
       const players = Array.from(mockStore.players.values()).filter(
-        (p) => p.game_id === gameId,
+        (p) => p.game_id === gameId
       );
       return {
         playerCount: players.length,
@@ -450,7 +450,7 @@ export const gameService = {
   // Get answers for current question (admin view)
   async getQuestionAnswers(
     gameId: string,
-    questionNumber: number,
+    questionNumber: number
   ): Promise<
     Array<{
       player_id: string;
@@ -480,7 +480,7 @@ export const gameService = {
           name,
           team
         )
-      `,
+      `
       )
       .eq("game_id", gameId)
       .eq("question_id", questionNumber)
@@ -502,7 +502,7 @@ export const gameService = {
   subscribeToAnswers(
     gameId: string,
     questionNumber: number,
-    callback: (answers: any[]) => void,
+    callback: (answers: any[]) => void
   ) {
     if (isDevelopmentMode) {
       // Mock subscription - just return a fake unsubscribe function
@@ -525,19 +525,28 @@ export const gameService = {
         () => {
           // Refetch answers when changes occur
           this.getQuestionAnswers(gameId, questionNumber).then(callback);
-        },
+        }
       )
       .subscribe();
   },
 
   // Advance to next question (admin only)
   async nextQuestion(gameId: string): Promise<void> {
+    console.log("🔄 nextQuestion called for gameId:", gameId);
+    console.trace("Call stack for nextQuestion:");
+
     if (isDevelopmentMode) {
       const game = mockStore.games.get(gameId);
       if (!game) {
         throw new GameServiceError("Game not found", "GAME_NOT_FOUND", 404);
       }
 
+      console.log(
+        "📈 Advancing question from",
+        game.current_question,
+        "to",
+        (game.current_question || 0) + 1
+      );
       const updatedGame = {
         ...game,
         current_question: (game.current_question || 0) + 1,
@@ -569,7 +578,7 @@ export const gameService = {
     if (error) {
       throw new GameServiceError(
         `Failed to advance question: ${error.message}`,
-        error.code,
+        error.code
       );
     }
   },
@@ -597,7 +606,7 @@ export const gameService = {
     if (error) {
       throw new GameServiceError(
         `Failed to end game: ${error.message}`,
-        error.code,
+        error.code
       );
     }
   },
@@ -625,7 +634,7 @@ export const gameService = {
     if (error) {
       throw new GameServiceError(
         `Failed to pause game: ${error.message}`,
-        error.code,
+        error.code
       );
     }
   },
@@ -652,7 +661,7 @@ export const gameService = {
     if (error) {
       throw new GameServiceError(
         `Failed to resume game: ${error.message}`,
-        error.code,
+        error.code
       );
     }
   },

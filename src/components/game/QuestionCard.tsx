@@ -1,6 +1,5 @@
-
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface Question {
   id: string;
@@ -18,19 +17,19 @@ interface QuestionCardProps {
   teamColor: string;
 }
 
-export const QuestionCard = ({ 
-  question, 
-  selectedAnswer, 
-  onAnswerSelect, 
+export const QuestionCard = ({
+  question,
+  selectedAnswer,
+  onAnswerSelect,
   hasSubmitted,
-  teamColor 
+  teamColor,
 }: QuestionCardProps) => {
   return (
     <Card className="p-6">
       <div className="space-y-6">
         {/* Question Text - Large font minimum 20px */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 leading-relaxed">
+          <h2 className="text-2xl font-bold leading-relaxed text-gray-900">
             {question.text}
           </h2>
         </div>
@@ -40,13 +39,13 @@ export const QuestionCard = ({
           {question.options.map((option, index) => {
             const letter = String.fromCharCode(65 + index); // A, B, C, D
             const isSelected = selectedAnswer === option;
-            
+
             return (
               <Button
                 key={option}
                 variant={isSelected ? "default" : "outline"}
-                className={`w-full h-auto p-4 text-left justify-start text-wrap min-h-[60px] ${
-                  isSelected ? 'ring-2 ring-offset-2' : ''
+                className={`h-auto min-h-[60px] w-full justify-start text-wrap p-4 text-left ${
+                  isSelected ? "ring-2 ring-offset-2" : ""
                 }`}
                 style={{
                   backgroundColor: isSelected ? teamColor : undefined,
@@ -55,13 +54,17 @@ export const QuestionCard = ({
                 onClick={() => onAnswerSelect(option)}
                 disabled={hasSubmitted}
               >
-                <span className="flex items-start space-x-3 w-full">
-                  <span className={`font-bold text-sm px-2 py-1 rounded ${
-                    isSelected ? 'bg-white/20' : 'bg-gray-100'
-                  }`}>
+                <span className="flex w-full items-start space-x-3">
+                  <span
+                    className={`rounded px-2 py-1 text-sm font-bold ${
+                      isSelected ? "bg-white/20" : "bg-gray-100"
+                    }`}
+                  >
                     {letter}
                   </span>
-                  <span className="text-lg leading-relaxed flex-1">{option}</span>
+                  <span className="flex-1 text-lg leading-relaxed">
+                    {option}
+                  </span>
                 </span>
               </Button>
             );
@@ -71,7 +74,9 @@ export const QuestionCard = ({
         {/* Instructions */}
         {!hasSubmitted && (
           <div className="text-center text-sm text-gray-500">
-            {selectedAnswer ? 'Tap "Submit Answer" to confirm your choice' : 'Select an answer above'}
+            {selectedAnswer
+              ? 'Tap "Submit Answer" to confirm your choice'
+              : "Select an answer above"}
           </div>
         )}
       </div>

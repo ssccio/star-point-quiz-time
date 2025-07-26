@@ -1,0 +1,2 @@
+1. Generate all team QR codes should open in a new tab.
+2. When I join 2 users to a team, both are getting "Waiting for game to start". What I start the game as admin, nothing changes on the users end.
