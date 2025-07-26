@@ -172,6 +172,23 @@ export const gameService = {
     return data
   },
 
+  // Get all available games (for admin panel)
+  async getAllGames(): Promise<Game[]> {
+    if (isDevelopmentMode) {
+      return Array.from(mockStore.games.values())
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    }
+
+    const client = ensureSupabaseConfigured();
+    const { data } = await client
+      .from('games')
+      .select()
+      .order('created_at', { ascending: false })
+      .limit(50) // Limit to recent games
+
+    return data || []
+  },
+
   // Get all players in game
   async getPlayers(gameId: string): Promise<Player[]> {
     if (isDevelopmentMode) {
@@ -303,5 +320,75 @@ export const gameService = {
         }
       )
       .subscribe()
+  },
+
+  // Delete game and all associated data (admin only)
+  async deleteGame(gameId: string): Promise<void> {
+    if (isDevelopmentMode) {
+      // Mock implementation - remove from mock store
+      const game = mockStore.games.get(gameId)
+      if (game) {
+        mockStore.games.delete(gameId)
+        mockStore.gamesByCode.delete(game.game_code)
+        // Remove associated players and answers
+        Array.from(mockStore.players.keys()).forEach(playerId => {
+          const player = mockStore.players.get(playerId)
+          if (player?.game_id === gameId) {
+            mockStore.players.delete(playerId)
+          }
+        })
+        Array.from(mockStore.answers.keys()).forEach(answerId => {
+          const answer = mockStore.answers.get(answerId)
+          if (answer?.game_id === gameId) {
+            mockStore.answers.delete(answerId)
+          }
+        })
+      }
+      return
+    }
+
+    const client = ensureSupabaseConfigured();
+    
+    // Delete in order: answers -> players -> game (due to foreign key constraints)
+    await client.from('answers').delete().eq('game_id', gameId)
+    await client.from('players').delete().eq('game_id', gameId)
+    
+    const { error } = await client.from('games').delete().eq('id', gameId)
+    if (error) {
+      throw new GameServiceError(`Failed to delete game: ${error.message}`, error.code)
+    }
+  },
+
+  // Get game statistics for management
+  async getGameStats(gameId: string): Promise<{
+    playerCount: number;
+    status: string;
+    createdAt: string;
+    lastActivity?: string;
+  }> {
+    if (isDevelopmentMode) {
+      const game = mockStore.games.get(gameId)
+      const players = Array.from(mockStore.players.values()).filter(p => p.game_id === gameId)
+      return {
+        playerCount: players.length,
+        status: game?.status || 'unknown',
+        createdAt: game?.created_at || new Date().toISOString(),
+        lastActivity: game?.updated_at
+      }
+    }
+
+    const client = ensureSupabaseConfigured();
+    
+    const [gameResult, playersResult] = await Promise.all([
+      client.from('games').select('status, created_at, updated_at').eq('id', gameId).single(),
+      client.from('players').select('id').eq('game_id', gameId)
+    ])
+
+    return {
+      playerCount: playersResult.data?.length || 0,
+      status: gameResult.data?.status || 'unknown',
+      createdAt: gameResult.data?.created_at || new Date().toISOString(),
+      lastActivity: gameResult.data?.updated_at
+    }
   }
 }

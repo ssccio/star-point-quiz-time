@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Monitor, AlertTriangle, QrCode, Printer, Plus, Loader2, Crown } from 'lucide-react';
+import { Monitor, AlertTriangle, QrCode, Printer, Plus, Loader2, Crown, Trash2, Calendar, Users, ArrowLeft } from 'lucide-react';
 import { sampleQuestions } from '@/utils/sampleData';
 import { loadDefaultQuestions } from '@/utils/questionLoader';
 import { APP_CONFIG } from '@/utils/config';
@@ -35,6 +35,8 @@ interface AdminState {
   teamData: Record<string, TeamData>;
   loading: boolean;
   error: string | null;
+  availableGames: Game[];
+  showGameList: boolean;
 }
 
 const Admin = () => {
@@ -56,7 +58,9 @@ const Admin = () => {
       electa: { count: 0, connected: 0, names: [], scores: 0 }
     },
     loading: false,
-    error: null
+    error: null,
+    availableGames: [],
+    showGameList: false
   });
 
   // Secure authentication with proper validation
@@ -226,28 +230,119 @@ const Admin = () => {
     setAdminState(prev => ({ ...prev, error: 'Manual score adjustment not yet implemented' }));
   };
 
+  const loadAvailableGames = async () => {
+    setAdminState(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      const games = await gameService.getAllGames();
+      setAdminState(prev => ({ 
+        ...prev, 
+        availableGames: games,
+        showGameList: true,
+        loading: false 
+      }));
+    } catch (error) {
+      setAdminState(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Failed to load games',
+        loading: false 
+      }));
+    }
+  };
+
+  const switchToGame = async (game: Game) => {
+    setGameCode(game.game_code);
+    setAdminState(prev => ({ 
+      ...prev, 
+      showGameList: false,
+      loading: true 
+    }));
+    
+    try {
+      const players = await gameService.getPlayers(game.id);
+      const teamData = calculateTeamData(players);
+
+      setAdminState(prev => ({
+        ...prev,
+        selectedGame: game,
+        players,
+        teamData,
+        loading: false,
+        error: null
+      }));
+
+      // Subscribe to real-time updates
+      const playerSubscription = gameService.subscribeToPlayers(game.id, (updatedPlayers) => {
+        const newTeamData = calculateTeamData(updatedPlayers);
+        setAdminState(prev => ({
+          ...prev,
+          players: updatedPlayers,
+          teamData: newTeamData
+        }));
+      });
+
+      const gameSubscription = gameService.subscribeToGame(game.id, (updatedGame) => {
+        setAdminState(prev => ({
+          ...prev,
+          selectedGame: updatedGame
+        }));
+      });
+
+      setShowCreateGame(false);
+      toast.success(`Connected to game ${game.game_code}!`);
+      
+    } catch (error) {
+      setAdminState(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Failed to switch to game',
+        loading: false 
+      }));
+    }
+  };
+
   const switchGame = () => {
-    // Reset admin state to allow selecting a different game
-    setAdminState({
-      selectedGame: null,
-      players: [],
-      teamData: {
-        adah: { count: 0, connected: 0, names: [], scores: 0 },
-        ruth: { count: 0, connected: 0, names: [], scores: 0 },
-        esther: { count: 0, connected: 0, names: [], scores: 0 },
-        martha: { count: 0, connected: 0, names: [], scores: 0 },
-        electa: { count: 0, connected: 0, names: [], scores: 0 }
-      },
-      loading: false,
-      error: null
-    });
-    
-    // Reset other form state
-    setGameCode('');
-    setHostName('');
-    setShowCreateGame(true);
-    
-    toast.success('Disconnected from game. You can now create or join a different game.');
+    loadAvailableGames();
+  };
+
+  const deleteGame = async (game: Game) => {
+    if (!confirm(`Are you sure you want to delete game ${game.game_code}? This will permanently remove all game data and cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await gameService.deleteGame(game.id);
+      
+      // Remove from available games list
+      setAdminState(prev => ({
+        ...prev,
+        availableGames: prev.availableGames.filter(g => g.id !== game.id)
+      }));
+      
+      // If this was the currently selected game, disconnect
+      if (adminState.selectedGame?.id === game.id) {
+        setAdminState(prev => ({
+          selectedGame: null,
+          players: [],
+          teamData: {
+            adah: { count: 0, connected: 0, names: [], scores: 0 },
+            ruth: { count: 0, connected: 0, names: [], scores: 0 },
+            esther: { count: 0, connected: 0, names: [], scores: 0 },
+            martha: { count: 0, connected: 0, names: [], scores: 0 },
+            electa: { count: 0, connected: 0, names: [], scores: 0 }
+          },
+          loading: false,
+          error: null,
+          availableGames: prev.availableGames,
+          showGameList: prev.showGameList
+        }));
+        setGameCode('');
+        setShowCreateGame(true);
+      }
+      
+      toast.success(`Game ${game.game_code} deleted successfully!`);
+    } catch (error) {
+      toast.error(`Failed to delete game: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const createNewGame = async () => {
@@ -312,7 +407,7 @@ const Admin = () => {
                   size="sm"
                   className="text-gray-600 hover:text-gray-800"
                 >
-                  Switch Game
+                  Manage Games
                 </Button>
               </>
             )}
@@ -348,8 +443,100 @@ const Admin = () => {
           </div>
         </div>
 
+        {/* Game List Management - Show when switching games */}
+        {adminState.showGameList && (
+          <div className="bg-white rounded-lg p-6 shadow-sm border">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold flex items-center space-x-2">
+                <Monitor className="w-6 h-6 text-indigo-600" />
+                <span>Available Games</span>
+              </h2>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setAdminState(prev => ({ ...prev, showGameList: false }))}
+                className="flex items-center space-x-1"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
+              </Button>
+            </div>
+
+            {adminState.loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                <span>Loading games...</span>
+              </div>
+            ) : adminState.availableGames.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Monitor className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>No games found</p>
+                <p className="text-sm">Create a new game to get started</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {adminState.availableGames.map((game) => (
+                  <div key={game.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <code className="bg-white px-3 py-1 rounded text-lg font-mono font-bold">
+                          {game.game_code}
+                        </code>
+                        <Badge variant={game.status === 'active' ? 'default' : 'outline'}>
+                          {game.status.toUpperCase()}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{new Date(game.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span>{new Date(game.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        onClick={() => switchToGame(game)}
+                        className="bg-indigo-600 hover:bg-indigo-700"
+                        size="sm"
+                      >
+                        Connect
+                      </Button>
+                      <Button 
+                        onClick={() => deleteGame(game)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t">
+              <Button 
+                onClick={() => {
+                  setAdminState(prev => ({ ...prev, showGameList: false }));
+                  setShowCreateGame(true);
+                }}
+                variant="outline"
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create New Game Instead
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Game Management */}
-        {!adminState.selectedGame && (
+        {!adminState.selectedGame && !adminState.showGameList && (
           <div className="bg-white rounded-lg p-6 shadow-sm border">
             <div className="space-y-6">
               {showCreateGame ? (
