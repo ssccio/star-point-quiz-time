@@ -689,6 +689,8 @@ const Admin = () => {
           <QuestionDisplay
             currentQuestion={adminState.selectedGame.current_question - 1}
             question={sampleQuestions[adminState.selectedGame.current_question - 1]}
+            gameId={adminState.selectedGame.id}
+            totalPlayers={totalPlayers}
           />
         )}
 

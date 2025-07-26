@@ -390,5 +390,75 @@ export const gameService = {
       createdAt: gameResult.data?.created_at || new Date().toISOString(),
       lastActivity: gameResult.data?.updated_at
     }
+  },
+
+  // Get answers for current question (admin view)
+  async getQuestionAnswers(gameId: string, questionNumber: number): Promise<Array<{
+    player_id: string;
+    player_name: string;
+    team: string;
+    answer: string;
+    is_correct: boolean;
+    answered_at: string;
+  }>> {
+    if (isDevelopmentMode) {
+      // Mock implementation - return empty for now
+      return []
+    }
+
+    const client = ensureSupabaseConfigured();
+    
+    const { data } = await client
+      .from('answers')
+      .select(`
+        player_id,
+        answer,
+        is_correct,
+        answered_at,
+        players!inner (
+          name,
+          team
+        )
+      `)
+      .eq('game_id', gameId)
+      .eq('question_id', questionNumber)
+      .order('answered_at')
+
+    return data?.map(answer => ({
+      player_id: answer.player_id,
+      player_name: answer.players.name,
+      team: answer.players.team,
+      answer: answer.answer,
+      is_correct: answer.is_correct,
+      answered_at: answer.answered_at
+    })) || []
+  },
+
+  // Subscribe to answer updates for admin
+  subscribeToAnswers(gameId: string, questionNumber: number, callback: (answers: any[]) => void) {
+    if (isDevelopmentMode) {
+      // Mock subscription - just return a fake unsubscribe function
+      return {
+        unsubscribe: () => Promise.resolve({ error: null })
+      }
+    }
+
+    const client = ensureSupabaseConfigured();
+    return client
+      .channel(`answers:${gameId}:${questionNumber}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'answers',
+          filter: `game_id=eq.${gameId}`
+        },
+        () => {
+          // Refetch answers when changes occur
+          this.getQuestionAnswers(gameId, questionNumber).then(callback)
+        }
+      )
+      .subscribe()
   }
 }

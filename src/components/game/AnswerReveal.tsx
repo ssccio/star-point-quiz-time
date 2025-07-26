@@ -59,19 +59,19 @@ export const AnswerReveal = ({
                     isCorrect 
                       ? 'bg-green-50 border-green-500 text-green-800' 
                       : wasSelected 
-                        ? 'bg-red-50 border-red-500 text-red-800'
+                        ? 'bg-orange-50 border-orange-400 text-orange-800'
                         : 'bg-gray-50 border-gray-200 text-gray-600'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
                     <span className={`font-bold px-2 py-1 rounded ${
-                      isCorrect ? 'bg-green-200' : wasSelected ? 'bg-red-200' : 'bg-gray-200'
+                      isCorrect ? 'bg-green-200' : wasSelected ? 'bg-orange-200' : 'bg-gray-200'
                     }`}>
                       {letter}
                     </span>
                     <span className="text-lg">{option}</span>
                     {isCorrect && <span className="text-green-600 font-bold">✓ CORRECT</span>}
-                    {wasSelected && !isCorrect && <span className="text-red-600 font-bold">✗ YOUR ANSWER</span>}
+                    {wasSelected && !isCorrect && <span className="text-orange-600 font-bold">→ YOUR ANSWER</span>}
                   </div>
                 </div>
               );
@@ -101,8 +101,8 @@ export const AnswerReveal = ({
                   ✓ Correct! +20 points
                 </div>
               ) : (
-                <div className="text-red-600 font-bold text-xl">
-                  ✗ Incorrect. No points earned
+                <div className="text-orange-600 font-bold text-xl">
+                  → Not quite right this time
                 </div>
               )
             )}
