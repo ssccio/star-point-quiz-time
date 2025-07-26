@@ -20,7 +20,13 @@ export interface TeamMate {
   hasAnswered: boolean;
 }
 
-export const useGameState = (playerName: string | undefined, teamId: string | undefined, isPracticeMode = false) => {
+export const useGameState = (
+  playerName: string | undefined, 
+  teamId: string | undefined, 
+  isPracticeMode = false,
+  gameId?: string,
+  playerId?: string
+) => {
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [phase, setPhase] = useState<GamePhase>('question');
@@ -70,6 +76,75 @@ export const useGameState = (playerName: string | undefined, teamId: string | un
     loadQuestions();
   }, []);
 
+  // Subscribe to game state changes for multiplayer mode
+  useEffect(() => {
+    if (isPracticeMode || !gameId) return;
+
+    const subscription = gameService.subscribeToGame(gameId, (updatedGame) => {
+      // Sync current question index with game state
+      if (updatedGame.current_question && updatedGame.current_question !== currentQuestionIndex + 1) {
+        setCurrentQuestionIndex(updatedGame.current_question - 1);
+        setPhase('question');
+        setSelectedAnswer(null);
+        setHasSubmitted(false);
+        // Reset teammates answered status for new question
+        setTeamMates(prev => prev.map(mate => ({ ...mate, hasAnswered: false })));
+      }
+
+      // Handle game completion
+      if (updatedGame.status === 'finished') {
+        navigate('/results', { 
+          state: { 
+            playerName, 
+            team: teamId, 
+            finalScores: scores 
+          } 
+        });
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [isPracticeMode, gameId, currentQuestionIndex, navigate, playerName, teamId, scores]);
+
+  // Subscribe to real-time answer updates for teammates (multiplayer only)
+  useEffect(() => {
+    if (isPracticeMode || !gameId || !teamId) return;
+
+    const loadTeammates = async () => {
+      try {
+        const players = await gameService.getPlayers(gameId);
+        const teamPlayers = players.filter(p => p.team === teamId);
+        setTeamMates(teamPlayers.map(p => ({
+          name: p.name,
+          hasAnswered: false // Will be updated by answer subscription
+        })));
+      } catch (error) {
+        console.error('Failed to load teammates:', error);
+      }
+    };
+
+    const subscribeToAnswers = async () => {
+      const answerSubscription = gameService.subscribeToAnswers(gameId, currentQuestionIndex + 1, (answers) => {
+        // Update teammate answer status based on who has submitted answers
+        setTeamMates(prev => prev.map(mate => ({
+          ...mate,
+          hasAnswered: answers.some(answer => answer.player_name === mate.name)
+        })));
+      });
+
+      return answerSubscription;
+    };
+
+    loadTeammates();
+    const answerSub = subscribeToAnswers();
+
+    return () => {
+      answerSub.then(sub => sub?.unsubscribe());
+    };
+  }, [isPracticeMode, gameId, teamId, currentQuestionIndex]);
+
   const currentQuestion = questions[currentQuestionIndex];
 
   const handleAnswerSelect = useCallback((answer: string) => {
@@ -77,7 +152,7 @@ export const useGameState = (playerName: string | undefined, teamId: string | un
     setSelectedAnswer(answer);
   }, [hasSubmitted]);
 
-  const handleSubmitAnswer = useCallback(() => {
+  const handleSubmitAnswer = useCallback(async () => {
     if (!selectedAnswer || hasSubmitted || !playerName) return;
     setHasSubmitted(true);
     
@@ -92,39 +167,60 @@ export const useGameState = (playerName: string | undefined, teamId: string | un
           ? Math.max(prev.bestStreak, prev.currentStreak + 1)
           : prev.bestStreak
       }));
-    }
-    
-    // Mark player as answered (only for multiplayer mode)
-    if (!isPracticeMode) {
+      
+      // For practice mode, just show results after delay
+      setTimeout(() => {
+        setPhase('answer-reveal');
+      }, 1000);
+    } else if (gameId && playerId && currentQuestion) {
+      // Submit answer to database for multiplayer mode
+      try {
+        const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+        await gameService.submitAnswer(
+          gameId,
+          playerId,
+          currentQuestionIndex + 1, // Question IDs are 1-based
+          selectedAnswer,
+          isCorrect
+        );
+        
+        // Mark player as answered locally
+        setTeamMates(prev => prev.map(mate => 
+          mate.name === playerName ? { ...mate, hasAnswered: true } : mate
+        ));
+        
+        // Show answer phase after brief delay
+        setTimeout(() => {
+          setPhase('answer-reveal');
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Failed to submit answer:', error);
+        // Still show answer phase even if submission failed
+        setTimeout(() => {
+          setPhase('answer-reveal');
+        }, 1000);
+      }
+    } else {
+      // Fallback for multiplayer without proper IDs
       setTeamMates(prev => prev.map(mate => 
         mate.name === playerName ? { ...mate, hasAnswered: true } : mate
       ));
+      setTimeout(() => {
+        setPhase('answer-reveal');
+      }, 1000);
     }
-    
-    // Simulate processing time
-    setTimeout(() => {
-      setPhase('answer-reveal');
-    }, 1000);
-  }, [selectedAnswer, hasSubmitted, playerName, isPracticeMode, currentQuestion]);
+  }, [selectedAnswer, hasSubmitted, playerName, isPracticeMode, currentQuestion, gameId, playerId, currentQuestionIndex]);
 
   const handleNextQuestion = useCallback(() => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      setPhase('question');
-      setSelectedAnswer(null);
-      setHasSubmitted(false);
-      
-      // Only update multiplayer state if not in practice mode
-      if (!isPracticeMode) {
-        // Reset teammates answered status
-        setTeamMates(prev => prev.map(mate => ({ ...mate, hasAnswered: false })));
-        
-        // For real multiplayer games, scores should be updated via Supabase real-time subscriptions
-        // No need to update scores manually here
-      }
-    } else {
-      // Navigate to different results based on mode
-      if (isPracticeMode) {
+    // In practice mode, advance questions locally
+    if (isPracticeMode) {
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+        setPhase('question');
+        setSelectedAnswer(null);
+        setHasSubmitted(false);
+      } else {
         navigate('/results', { 
           state: { 
             playerName, 
@@ -134,15 +230,12 @@ export const useGameState = (playerName: string | undefined, teamId: string | un
             totalQuestions: questions.length
           } 
         });
-      } else {
-        navigate('/results', { 
-          state: { 
-            playerName, 
-            team: teamId, 
-            finalScores: scores 
-          } 
-        });
       }
+    } else {
+      // In multiplayer mode, questions are controlled by admin
+      // Players just see results and wait for admin to advance
+      // The game state subscription will handle question changes
+      console.log('Waiting for host to advance to next question...');
     }
   }, [currentQuestionIndex, questions.length, navigate, playerName, teamId, scores, isPracticeMode, practiceStats]);
 

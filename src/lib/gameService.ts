@@ -460,5 +460,117 @@ export const gameService = {
         }
       )
       .subscribe()
+  },
+
+  // Advance to next question (admin only)
+  async nextQuestion(gameId: string): Promise<void> {
+    if (isDevelopmentMode) {
+      const game = mockStore.games.get(gameId)
+      if (!game) {
+        throw new GameServiceError('Game not found', 'GAME_NOT_FOUND', 404)
+      }
+      
+      const updatedGame = { ...game, current_question: (game.current_question || 0) + 1 }
+      mockStore.games.set(gameId, updatedGame)
+      return
+    }
+
+    const client = ensureSupabaseConfigured();
+    
+    // Get current question number first
+    const { data: game } = await client
+      .from('games')
+      .select('current_question')
+      .eq('id', gameId)
+      .single()
+
+    if (!game) {
+      throw new GameServiceError('Game not found', 'GAME_NOT_FOUND', 404)
+    }
+
+    const nextQuestionNumber = (game.current_question || 0) + 1
+    
+    const { error } = await client
+      .from('games')
+      .update({ current_question: nextQuestionNumber })
+      .eq('id', gameId)
+
+    if (error) {
+      throw new GameServiceError(`Failed to advance question: ${error.message}`, error.code)
+    }
+  },
+
+  // End game (admin only)
+  async endGame(gameId: string): Promise<void> {
+    if (isDevelopmentMode) {
+      const game = mockStore.games.get(gameId)
+      if (!game) {
+        throw new GameServiceError('Game not found', 'GAME_NOT_FOUND', 404)
+      }
+      
+      const updatedGame = { ...game, status: 'finished' as const }
+      mockStore.games.set(gameId, updatedGame)
+      return
+    }
+
+    const client = ensureSupabaseConfigured();
+    
+    const { error } = await client
+      .from('games')
+      .update({ status: 'finished' })
+      .eq('id', gameId)
+
+    if (error) {
+      throw new GameServiceError(`Failed to end game: ${error.message}`, error.code)
+    }
+  },
+
+  // Pause/Resume game (admin only)
+  async pauseGame(gameId: string): Promise<void> {
+    if (isDevelopmentMode) {
+      const game = mockStore.games.get(gameId)
+      if (!game) {
+        throw new GameServiceError('Game not found', 'GAME_NOT_FOUND', 404)
+      }
+      
+      const updatedGame = { ...game, status: 'paused' as const }
+      mockStore.games.set(gameId, updatedGame)
+      return
+    }
+
+    const client = ensureSupabaseConfigured();
+    
+    const { error } = await client
+      .from('games')
+      .update({ status: 'paused' })
+      .eq('id', gameId)
+
+    if (error) {
+      throw new GameServiceError(`Failed to pause game: ${error.message}`, error.code)
+    }
+  },
+
+  async resumeGame(gameId: string): Promise<void> {
+    if (isDevelopmentMode) {
+      const game = mockStore.games.get(gameId)
+      if (!game) {
+        throw new GameServiceError('Game not found', 'GAME_NOT_FOUND', 404)
+      }
+      
+      const updatedGame = { ...game, status: 'active' as const }
+      mockStore.games.set(gameId, updatedGame)
+      return
+    }
+
+    const client = ensureSupabaseConfigured();
+    
+    const { error } = await client
+      .from('games')
+      .update({ status: 'active' })
+      .eq('id', gameId)
+
+    if (error) {
+      throw new GameServiceError(`Failed to resume game: ${error.message}`, error.code)
+    }
   }
 }

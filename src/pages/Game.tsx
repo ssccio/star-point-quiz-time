@@ -24,7 +24,12 @@ const Game = () => {
   const teamId = isPracticeMode ? searchParams.get('team') : location.state?.team;
   const playerName = isPracticeMode ? 'Practice Player' : location.state?.playerName;
   
-  const gameState = useGameState(playerName, teamId, isPracticeMode);
+  // Get game context for multiplayer mode
+  const gameData = !isPracticeMode ? JSON.parse(localStorage.getItem('gameData') || '{}') : {};
+  const gameId = !isPracticeMode ? gameData.gameId : undefined;
+  const playerId = !isPracticeMode ? gameData.playerId : undefined;
+  
+  const gameState = useGameState(playerName, teamId, isPracticeMode, gameId, playerId);
   const { timeRemaining, resetTimer } = useGameTimer(
     60, 
     gameState.phase === 'question' && !gameState.hasSubmitted,

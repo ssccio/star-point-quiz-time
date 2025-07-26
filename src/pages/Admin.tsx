@@ -213,17 +213,55 @@ const Admin = () => {
     }
   };
 
-  // Note: Pause/Stop functionality would need additional backend support
-  const handlePauseGame = () => {
-    setAdminState(prev => ({ ...prev, error: 'Pause functionality not yet implemented' }));
+  const handlePauseGame = async () => {
+    if (!adminState.selectedGame) return;
+    
+    try {
+      if (adminState.selectedGame.status === 'active') {
+        await gameService.pauseGame(adminState.selectedGame.id);
+        toast.success('Game paused');
+      } else if (adminState.selectedGame.status === 'paused') {
+        await gameService.resumeGame(adminState.selectedGame.id);
+        toast.success('Game resumed');
+      }
+    } catch (error) {
+      setAdminState(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Failed to pause/resume game' 
+      }));
+    }
   };
   
-  const handleStopGame = () => {
-    setAdminState(prev => ({ ...prev, error: 'Stop functionality not yet implemented' }));
+  const handleStopGame = async () => {
+    if (!adminState.selectedGame) return;
+    
+    if (!confirm('Are you sure you want to end this game? This will send all players to the results page.')) {
+      return;
+    }
+    
+    try {
+      await gameService.endGame(adminState.selectedGame.id);
+      toast.success('Game ended');
+    } catch (error) {
+      setAdminState(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Failed to end game' 
+      }));
+    }
   };
 
-  const handleNextQuestion = () => {
-    setAdminState(prev => ({ ...prev, error: 'Next question functionality not yet implemented' }));
+  const handleNextQuestion = async () => {
+    if (!adminState.selectedGame) return;
+    
+    try {
+      await gameService.nextQuestion(adminState.selectedGame.id);
+      toast.success('Advanced to next question');
+    } catch (error) {
+      setAdminState(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Failed to advance question' 
+      }));
+    }
   };
 
   const adjustScore = () => {
