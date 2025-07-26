@@ -226,6 +226,30 @@ const Admin = () => {
     setAdminState(prev => ({ ...prev, error: 'Manual score adjustment not yet implemented' }));
   };
 
+  const switchGame = () => {
+    // Reset admin state to allow selecting a different game
+    setAdminState({
+      selectedGame: null,
+      players: [],
+      teamData: {
+        adah: { count: 0, connected: 0, names: [], scores: 0 },
+        ruth: { count: 0, connected: 0, names: [], scores: 0 },
+        esther: { count: 0, connected: 0, names: [], scores: 0 },
+        martha: { count: 0, connected: 0, names: [], scores: 0 },
+        electa: { count: 0, connected: 0, names: [], scores: 0 }
+      },
+      loading: false,
+      error: null
+    });
+    
+    // Reset other form state
+    setGameCode('');
+    setHostName('');
+    setShowCreateGame(true);
+    
+    toast.success('Disconnected from game. You can now create or join a different game.');
+  };
+
   const createNewGame = async () => {
     if (!hostName.trim()) {
       toast.error('Please enter your name');
@@ -278,9 +302,19 @@ const Admin = () => {
           </div>
           <div className="flex items-center space-x-4">
             {adminState.selectedGame && (
-              <Badge variant={adminState.selectedGame.status === 'active' ? 'default' : 'outline'}>
-                {adminState.selectedGame.status.toUpperCase()}
-              </Badge>
+              <>
+                <Badge variant={adminState.selectedGame.status === 'active' ? 'default' : 'outline'}>
+                  {adminState.selectedGame.status.toUpperCase()}
+                </Badge>
+                <Button
+                  onClick={switchGame}
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  Switch Game
+                </Button>
+              </>
             )}
             <button
               onClick={() => {
