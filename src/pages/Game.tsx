@@ -62,7 +62,7 @@ const Game = () => {
           totalQuestions={gameState.questions.length}
           teamScore={isPracticeMode ? 
             Math.round((gameState.practiceStats.correctAnswers / Math.max(gameState.practiceStats.totalAnswered, 1)) * 100) : 
-            gameState.scores[teamId as keyof typeof gameState.scores]
+            0  // For multiplayer games, don't show team scores during gameplay
           }
         />
 
@@ -136,7 +136,7 @@ const Game = () => {
           <AnswerReveal
             currentQuestion={gameState.currentQuestion}
             selectedAnswer={gameState.selectedAnswer}
-            scores={isPracticeMode ? undefined : gameState.scores}
+            scores={undefined}  // Don't show team scores during multiplayer gameplay
             currentTeam={teamId}
             currentQuestionIndex={gameState.currentQuestionIndex}
             totalQuestions={gameState.questions.length}

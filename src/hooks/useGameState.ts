@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sampleQuestions } from '@/utils/sampleData';
 import { loadDefaultQuestions } from '@/utils/questionLoader';
-import { DEMO_SCORES, DEMO_TEAMMATES, APP_CONFIG } from '@/utils/config';
+import { APP_CONFIG } from '@/utils/config';
+import { gameService } from '@/lib/gameService';
 
 export type GamePhase = 'question' | 'answer-reveal' | 'leaderboard' | 'final-wager' | 'results';
 
@@ -25,24 +26,14 @@ export const useGameState = (playerName: string | undefined, teamId: string | un
   const [phase, setPhase] = useState<GamePhase>('question');
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [scores, setScores] = useState<TeamScores>(
-    isPracticeMode ? {
-      adah: 0,
-      ruth: 0,
-      esther: 0,
-      martha: 0,
-      electa: 0
-    } : (APP_CONFIG.USE_DEMO_DATA ? DEMO_SCORES : {
-      adah: 0,
-      ruth: 0,
-      esther: 0,
-      martha: 0,
-      electa: 0
-    })
-  );
-  const [teamMates, setTeamMates] = useState<TeamMate[]>(
-    isPracticeMode ? [] : (APP_CONFIG.USE_DEMO_DATA ? [...DEMO_TEAMMATES] : [])
-  );
+  const [scores, setScores] = useState<TeamScores>({
+    adah: 0,
+    ruth: 0,
+    esther: 0,
+    martha: 0,
+    electa: 0
+  });
+  const [teamMates, setTeamMates] = useState<TeamMate[]>([]);
   const [questions, setQuestions] = useState(sampleQuestions);
   const [questionMetadata, setQuestionMetadata] = useState<{
     title: string;
@@ -52,6 +43,7 @@ export const useGameState = (playerName: string | undefined, teamId: string | un
     created: string;
     version: string;
   } | null>(null);
+
   
   // Practice mode specific state
   const [practiceStats, setPracticeStats] = useState({
@@ -127,14 +119,8 @@ export const useGameState = (playerName: string | undefined, teamId: string | un
         // Reset teammates answered status
         setTeamMates(prev => prev.map(mate => ({ ...mate, hasAnswered: false })));
         
-        // Update scores randomly for demo
-        setScores(prev => ({
-          adah: prev.adah + Math.floor(Math.random() * 30),
-          ruth: prev.ruth + Math.floor(Math.random() * 30),
-          esther: prev.esther + Math.floor(Math.random() * 30),
-          martha: prev.martha + Math.floor(Math.random() * 30),
-          electa: prev.electa + Math.floor(Math.random() * 30),
-        }));
+        // For real multiplayer games, scores should be updated via Supabase real-time subscriptions
+        // No need to update scores manually here
       }
     } else {
       // Navigate to different results based on mode
