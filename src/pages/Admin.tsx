@@ -1,26 +1,38 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Monitor, AlertTriangle, QrCode, Printer, Plus, Loader2, Crown, Trash2, Calendar, Users, ArrowLeft } from 'lucide-react';
-import { sampleQuestions } from '@/utils/sampleData';
-import { loadDefaultQuestions } from '@/utils/questionLoader';
-import { APP_CONFIG } from '@/utils/config';
-import { AdminLogin } from '@/components/admin/AdminLogin';
-import { GameControls } from '@/components/admin/GameControls';
-import { GameStatus } from '@/components/admin/GameStatus';
-import { TeamManagement } from '@/components/admin/TeamManagement';
-import { QuestionDisplay } from '@/components/admin/QuestionDisplay';
-import { gameService } from '@/lib/gameService';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-import type { Database } from '@/lib/supabase';
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Monitor,
+  AlertTriangle,
+  QrCode,
+  Printer,
+  Plus,
+  Loader2,
+  Crown,
+  Trash2,
+  Calendar,
+  Users,
+  ArrowLeft,
+} from "lucide-react";
+import { sampleQuestions } from "@/utils/sampleData";
+import { loadDefaultQuestions } from "@/utils/questionLoader";
+import { APP_CONFIG } from "@/utils/config";
+import { AdminLogin } from "@/components/admin/AdminLogin";
+import { GameControls } from "@/components/admin/GameControls";
+import { GameStatus } from "@/components/admin/GameStatus";
+import { TeamManagement } from "@/components/admin/TeamManagement";
+import { QuestionDisplay } from "@/components/admin/QuestionDisplay";
+import { gameService } from "@/lib/gameService";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import type { Database } from "@/lib/supabase";
 
-type Game = Database['public']['Tables']['games']['Row'];
-type Player = Database['public']['Tables']['players']['Row'];
-type GameStatus = 'waiting' | 'active' | 'paused' | 'finished';
+type Game = Database["public"]["Tables"]["games"]["Row"];
+type Player = Database["public"]["Tables"]["players"]["Row"];
+type GameStatus = "waiting" | "active" | "paused" | "finished";
 
 interface TeamData {
   count: number;
@@ -42,8 +54,8 @@ interface AdminState {
 const Admin = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [gameCode, setGameCode] = useState('');
-  const [hostName, setHostName] = useState('');
+  const [gameCode, setGameCode] = useState("");
+  const [hostName, setHostName] = useState("");
   const [isCreatingGame, setIsCreatingGame] = useState(false);
   const [showCreateGame, setShowCreateGame] = useState(true);
   const [totalQuestions, setTotalQuestions] = useState(sampleQuestions.length);
@@ -55,48 +67,51 @@ const Admin = () => {
       ruth: { count: 0, connected: 0, names: [], scores: 0 },
       esther: { count: 0, connected: 0, names: [], scores: 0 },
       martha: { count: 0, connected: 0, names: [], scores: 0 },
-      electa: { count: 0, connected: 0, names: [], scores: 0 }
+      electa: { count: 0, connected: 0, names: [], scores: 0 },
     },
     loading: false,
     error: null,
     availableGames: [],
-    showGameList: false
+    showGameList: false,
   });
 
   // Secure authentication with proper validation
   const handleLogin = async (password: string) => {
     if (!password || password.length < 6) {
-      setAdminState(prev => ({ ...prev, error: 'Password must be at least 6 characters' }));
+      setAdminState((prev) => ({
+        ...prev,
+        error: "Password must be at least 6 characters",
+      }));
       return;
     }
-    
+
     if (password === APP_CONFIG.DEFAULT_ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       const authData = {
         authenticated: true,
         timestamp: Date.now(),
-        expires: Date.now() + (2 * 60 * 60 * 1000) // 2 hours
+        expires: Date.now() + 2 * 60 * 60 * 1000, // 2 hours
       };
-      localStorage.setItem('adminAuth', JSON.stringify(authData));
+      localStorage.setItem("adminAuth", JSON.stringify(authData));
     } else {
-      setAdminState(prev => ({ ...prev, error: 'Invalid password' }));
+      setAdminState((prev) => ({ ...prev, error: "Invalid password" }));
     }
   };
 
   // Validate stored authentication
   useEffect(() => {
     try {
-      const authStr = localStorage.getItem('adminAuth');
+      const authStr = localStorage.getItem("adminAuth");
       if (authStr) {
         const auth = JSON.parse(authStr);
         if (auth.authenticated && auth.expires > Date.now()) {
           setIsAuthenticated(true);
         } else {
-          localStorage.removeItem('adminAuth');
+          localStorage.removeItem("adminAuth");
         }
       }
     } catch (error) {
-      localStorage.removeItem('adminAuth');
+      localStorage.removeItem("adminAuth");
     }
   }, []);
 
@@ -107,60 +122,71 @@ const Admin = () => {
         const { questions } = await loadDefaultQuestions();
         setTotalQuestions(questions.length);
       } catch (error) {
-        console.warn('Using fallback question count:', error);
+        console.warn("Using fallback question count:", error);
       }
     };
-    
+
     loadQuestions();
   }, []);
 
   const loadGameData = useCallback(async () => {
-    setAdminState(prev => ({ ...prev, loading: true, error: null }));
-    
+    setAdminState((prev) => ({ ...prev, loading: true, error: null }));
+
     try {
       const game = await gameService.getGame(gameCode);
       if (!game) {
-        setAdminState(prev => ({ ...prev, error: 'Game not found', loading: false }));
+        setAdminState((prev) => ({
+          ...prev,
+          error: "Game not found",
+          loading: false,
+        }));
         return;
       }
 
       const players = await gameService.getPlayers(game.id);
       const teamData = calculateTeamData(players);
 
-      setAdminState(prev => ({
+      setAdminState((prev) => ({
         ...prev,
         selectedGame: game,
         players,
         teamData,
-        loading: false
+        loading: false,
       }));
 
       // Subscribe to real-time updates
-      const playerSubscription = gameService.subscribeToPlayers(game.id, (updatedPlayers) => {
-        const newTeamData = calculateTeamData(updatedPlayers);
-        setAdminState(prev => ({
-          ...prev,
-          players: updatedPlayers,
-          teamData: newTeamData
-        }));
-      });
+      const playerSubscription = gameService.subscribeToPlayers(
+        game.id,
+        (updatedPlayers) => {
+          const newTeamData = calculateTeamData(updatedPlayers);
+          setAdminState((prev) => ({
+            ...prev,
+            players: updatedPlayers,
+            teamData: newTeamData,
+          }));
+        },
+      );
 
-      const gameSubscription = gameService.subscribeToGame(game.id, (updatedGame) => {
-        setAdminState(prev => ({
-          ...prev,
-          selectedGame: updatedGame
-        }));
-      });
+      const gameSubscription = gameService.subscribeToGame(
+        game.id,
+        (updatedGame) => {
+          setAdminState((prev) => ({
+            ...prev,
+            selectedGame: updatedGame,
+          }));
+        },
+      );
 
       return () => {
         supabase.removeChannel(playerSubscription);
         supabase.removeChannel(gameSubscription);
       };
     } catch (error) {
-      setAdminState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to load game data',
-        loading: false 
+      setAdminState((prev) => ({
+        ...prev,
+        error:
+          error instanceof Error ? error.message : "Failed to load game data",
+        loading: false,
       }));
     }
   }, [gameCode]);
@@ -173,16 +199,16 @@ const Admin = () => {
   }, [gameCode, isAuthenticated, loadGameData]);
 
   const calculateTeamData = (players: Player[]): Record<string, TeamData> => {
-    const teams = ['adah', 'ruth', 'esther', 'martha', 'electa'];
+    const teams = ["adah", "ruth", "esther", "martha", "electa"];
     const teamData: Record<string, TeamData> = {};
 
-    teams.forEach(team => {
-      const teamPlayers = players.filter(p => p.team === team);
+    teams.forEach((team) => {
+      const teamPlayers = players.filter((p) => p.team === team);
       teamData[team] = {
         count: teamPlayers.length,
         connected: teamPlayers.length, // All loaded players are considered connected
-        names: teamPlayers.map(p => p.name),
-        scores: teamPlayers.reduce((sum, p) => sum + (p.score || 0), 0)
+        names: teamPlayers.map((p) => p.name),
+        scores: teamPlayers.reduce((sum, p) => sum + (p.score || 0), 0),
       };
     });
 
@@ -191,149 +217,168 @@ const Admin = () => {
 
   const handleStartGame = async () => {
     if (!adminState.selectedGame) return;
-    
+
     try {
       await gameService.startGame(adminState.selectedGame.id);
-      
+
       // Update local game state to reflect the change
-      setAdminState(prev => ({ 
-        ...prev, 
-        selectedGame: prev.selectedGame ? {
-          ...prev.selectedGame,
-          status: 'active',
-          current_question: 1
-        } : null,
-        error: null 
+      setAdminState((prev) => ({
+        ...prev,
+        selectedGame: prev.selectedGame
+          ? {
+              ...prev.selectedGame,
+              status: "active",
+              current_question: 1,
+            }
+          : null,
+        error: null,
       }));
     } catch (error) {
-      setAdminState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to start game' 
+      setAdminState((prev) => ({
+        ...prev,
+        error: error instanceof Error ? error.message : "Failed to start game",
       }));
     }
   };
 
   const handlePauseGame = async () => {
     if (!adminState.selectedGame) return;
-    
+
     try {
-      if (adminState.selectedGame.status === 'active') {
+      if (adminState.selectedGame.status === "active") {
         await gameService.pauseGame(adminState.selectedGame.id);
-        toast.success('Game paused');
-      } else if (adminState.selectedGame.status === 'paused') {
+        toast.success("Game paused");
+      } else if (adminState.selectedGame.status === "paused") {
         await gameService.resumeGame(adminState.selectedGame.id);
-        toast.success('Game resumed');
+        toast.success("Game resumed");
       }
     } catch (error) {
-      setAdminState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to pause/resume game' 
+      setAdminState((prev) => ({
+        ...prev,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to pause/resume game",
       }));
     }
   };
-  
+
   const handleStopGame = async () => {
     if (!adminState.selectedGame) return;
-    
-    if (!confirm('Are you sure you want to end this game? This will send all players to the results page.')) {
+
+    if (
+      !confirm(
+        "Are you sure you want to end this game? This will send all players to the results page.",
+      )
+    ) {
       return;
     }
-    
+
     try {
       await gameService.endGame(adminState.selectedGame.id);
-      toast.success('Game ended');
+      toast.success("Game ended");
     } catch (error) {
-      setAdminState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to end game' 
+      setAdminState((prev) => ({
+        ...prev,
+        error: error instanceof Error ? error.message : "Failed to end game",
       }));
     }
   };
 
   const handleNextQuestion = async () => {
     if (!adminState.selectedGame) return;
-    
+
     try {
       await gameService.nextQuestion(adminState.selectedGame.id);
-      toast.success('Advanced to next question');
+      toast.success("Advanced to next question");
     } catch (error) {
-      setAdminState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to advance question' 
+      setAdminState((prev) => ({
+        ...prev,
+        error:
+          error instanceof Error ? error.message : "Failed to advance question",
       }));
     }
   };
 
   const adjustScore = () => {
-    setAdminState(prev => ({ ...prev, error: 'Manual score adjustment not yet implemented' }));
+    setAdminState((prev) => ({
+      ...prev,
+      error: "Manual score adjustment not yet implemented",
+    }));
   };
 
   const loadAvailableGames = async () => {
-    setAdminState(prev => ({ ...prev, loading: true, error: null }));
-    
+    setAdminState((prev) => ({ ...prev, loading: true, error: null }));
+
     try {
       const games = await gameService.getAllGames();
-      setAdminState(prev => ({ 
-        ...prev, 
+      setAdminState((prev) => ({
+        ...prev,
         availableGames: games,
         showGameList: true,
-        loading: false 
+        loading: false,
       }));
     } catch (error) {
-      setAdminState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to load games',
-        loading: false 
+      setAdminState((prev) => ({
+        ...prev,
+        error: error instanceof Error ? error.message : "Failed to load games",
+        loading: false,
       }));
     }
   };
 
   const switchToGame = async (game: Game) => {
     setGameCode(game.game_code);
-    setAdminState(prev => ({ 
-      ...prev, 
+    setAdminState((prev) => ({
+      ...prev,
       showGameList: false,
-      loading: true 
+      loading: true,
     }));
-    
+
     try {
       const players = await gameService.getPlayers(game.id);
       const teamData = calculateTeamData(players);
 
-      setAdminState(prev => ({
+      setAdminState((prev) => ({
         ...prev,
         selectedGame: game,
         players,
         teamData,
         loading: false,
-        error: null
+        error: null,
       }));
 
       // Subscribe to real-time updates
-      const playerSubscription = gameService.subscribeToPlayers(game.id, (updatedPlayers) => {
-        const newTeamData = calculateTeamData(updatedPlayers);
-        setAdminState(prev => ({
-          ...prev,
-          players: updatedPlayers,
-          teamData: newTeamData
-        }));
-      });
+      const playerSubscription = gameService.subscribeToPlayers(
+        game.id,
+        (updatedPlayers) => {
+          const newTeamData = calculateTeamData(updatedPlayers);
+          setAdminState((prev) => ({
+            ...prev,
+            players: updatedPlayers,
+            teamData: newTeamData,
+          }));
+        },
+      );
 
-      const gameSubscription = gameService.subscribeToGame(game.id, (updatedGame) => {
-        setAdminState(prev => ({
-          ...prev,
-          selectedGame: updatedGame
-        }));
-      });
+      const gameSubscription = gameService.subscribeToGame(
+        game.id,
+        (updatedGame) => {
+          setAdminState((prev) => ({
+            ...prev,
+            selectedGame: updatedGame,
+          }));
+        },
+      );
 
       setShowCreateGame(false);
       toast.success(`Connected to game ${game.game_code}!`);
-      
     } catch (error) {
-      setAdminState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to switch to game',
-        loading: false 
+      setAdminState((prev) => ({
+        ...prev,
+        error:
+          error instanceof Error ? error.message : "Failed to switch to game",
+        loading: false,
       }));
     }
   };
@@ -343,22 +388,26 @@ const Admin = () => {
   };
 
   const deleteGame = async (game: Game) => {
-    if (!confirm(`Are you sure you want to delete game ${game.game_code}? This will permanently remove all game data and cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete game ${game.game_code}? This will permanently remove all game data and cannot be undone.`,
+      )
+    ) {
       return;
     }
 
     try {
       await gameService.deleteGame(game.id);
-      
+
       // Remove from available games list
-      setAdminState(prev => ({
+      setAdminState((prev) => ({
         ...prev,
-        availableGames: prev.availableGames.filter(g => g.id !== game.id)
+        availableGames: prev.availableGames.filter((g) => g.id !== game.id),
       }));
-      
+
       // If this was the currently selected game, disconnect
       if (adminState.selectedGame?.id === game.id) {
-        setAdminState(prev => ({
+        setAdminState((prev) => ({
           selectedGame: null,
           players: [],
           teamData: {
@@ -366,51 +415,54 @@ const Admin = () => {
             ruth: { count: 0, connected: 0, names: [], scores: 0 },
             esther: { count: 0, connected: 0, names: [], scores: 0 },
             martha: { count: 0, connected: 0, names: [], scores: 0 },
-            electa: { count: 0, connected: 0, names: [], scores: 0 }
+            electa: { count: 0, connected: 0, names: [], scores: 0 },
           },
           loading: false,
           error: null,
           availableGames: prev.availableGames,
-          showGameList: prev.showGameList
+          showGameList: prev.showGameList,
         }));
-        setGameCode('');
+        setGameCode("");
         setShowCreateGame(true);
       }
-      
+
       toast.success(`Game ${game.game_code} deleted successfully!`);
     } catch (error) {
-      toast.error(`Failed to delete game: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(
+        `Failed to delete game: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   };
 
   const createNewGame = async () => {
     if (!hostName.trim()) {
-      toast.error('Please enter your name');
+      toast.error("Please enter your name");
       return;
     }
 
     setIsCreatingGame(true);
     try {
-      const { game, gameCode: newGameCode } = await gameService.createGame(hostName.trim());
-      
+      const { game, gameCode: newGameCode } = await gameService.createGame(
+        hostName.trim(),
+      );
+
       // Set the created game as the current game
       setGameCode(newGameCode);
-      setAdminState(prev => ({
+      setAdminState((prev) => ({
         ...prev,
         selectedGame: game,
         players: [], // No players initially - admin is not a player
-        error: null
+        error: null,
       }));
-      
+
       setShowCreateGame(false);
       toast.success(`Game created successfully! Code: ${newGameCode}`);
-      
     } catch (error) {
-      console.error('Error creating game:', error);
-      toast.error('Failed to create game. Please try again.');
-      setAdminState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error.message : 'Failed to create game' 
+      console.error("Error creating game:", error);
+      toast.error("Failed to create game. Please try again.");
+      setAdminState((prev) => ({
+        ...prev,
+        error: error instanceof Error ? error.message : "Failed to create game",
       }));
     } finally {
       setIsCreatingGame(false);
@@ -431,12 +483,20 @@ const Admin = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Monitor className="w-8 h-8 text-indigo-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Game Control Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Game Control Dashboard
+            </h1>
           </div>
           <div className="flex items-center space-x-4">
             {adminState.selectedGame && (
               <>
-                <Badge variant={adminState.selectedGame.status === 'active' ? 'default' : 'outline'}>
+                <Badge
+                  variant={
+                    adminState.selectedGame.status === "active"
+                      ? "default"
+                      : "outline"
+                  }
+                >
                   {adminState.selectedGame.status.toUpperCase()}
                 </Badge>
                 <Button
@@ -451,7 +511,7 @@ const Admin = () => {
             )}
             <button
               onClick={() => {
-                localStorage.removeItem('adminAuth');
+                localStorage.removeItem("adminAuth");
                 setIsAuthenticated(false);
               }}
               className="text-sm text-gray-600 hover:text-gray-900"
@@ -468,11 +528,12 @@ const Admin = () => {
             <span>Table QR Codes</span>
           </h2>
           <p className="text-gray-600 mb-4">
-            Generate printable QR codes for each team table. Print these at home before the event.
+            Generate printable QR codes for each team table. Print these at home
+            before the event.
           </p>
           <div className="flex space-x-4">
             <button
-              onClick={() => navigate('/admin/qr-codes')}
+              onClick={() => navigate("/admin/qr-codes")}
               className="flex items-center space-x-2 px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
             >
               <Printer className="w-4 h-4" />
@@ -489,10 +550,12 @@ const Admin = () => {
                 <Monitor className="w-6 h-6 text-indigo-600" />
                 <span>Available Games</span>
               </h2>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
-                onClick={() => setAdminState(prev => ({ ...prev, showGameList: false }))}
+                onClick={() =>
+                  setAdminState((prev) => ({ ...prev, showGameList: false }))
+                }
                 className="flex items-center space-x-1"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -514,36 +577,50 @@ const Admin = () => {
             ) : (
               <div className="space-y-3">
                 {adminState.availableGames.map((game) => (
-                  <div key={game.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div
+                    key={game.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
                         <code className="bg-white px-3 py-1 rounded text-lg font-mono font-bold">
                           {game.game_code}
                         </code>
-                        <Badge variant={game.status === 'active' ? 'default' : 'outline'}>
+                        <Badge
+                          variant={
+                            game.status === "active" ? "default" : "outline"
+                          }
+                        >
                           {game.status.toUpperCase()}
                         </Badge>
                       </div>
                       <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                         <div className="flex items-center space-x-1">
                           <Calendar className="w-4 h-4" />
-                          <span>{new Date(game.created_at).toLocaleDateString()}</span>
+                          <span>
+                            {new Date(game.created_at).toLocaleDateString()}
+                          </span>
                         </div>
                         <div className="flex items-center space-x-1">
-                          <span>{new Date(game.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>
+                            {new Date(game.created_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
-                      <Button 
+                      <Button
                         onClick={() => switchToGame(game)}
                         className="bg-indigo-600 hover:bg-indigo-700"
                         size="sm"
                       >
                         Connect
                       </Button>
-                      <Button 
+                      <Button
                         onClick={() => deleteGame(game)}
                         variant="outline"
                         size="sm"
@@ -558,9 +635,9 @@ const Admin = () => {
             )}
 
             <div className="mt-6 pt-4 border-t">
-              <Button 
+              <Button
                 onClick={() => {
-                  setAdminState(prev => ({ ...prev, showGameList: false }));
+                  setAdminState((prev) => ({ ...prev, showGameList: false }));
                   setShowCreateGame(true);
                 }}
                 variant="outline"
@@ -584,8 +661,8 @@ const Admin = () => {
                       <Crown className="w-6 h-6 text-indigo-600" />
                       <span>Create New Game</span>
                     </h2>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => setShowCreateGame(false)}
                       className="text-gray-500 hover:text-gray-700"
@@ -593,7 +670,7 @@ const Admin = () => {
                       Or connect to existing game →
                     </Button>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="hostName">Your Name (Host)</Label>
@@ -603,12 +680,12 @@ const Admin = () => {
                         onChange={(e) => setHostName(e.target.value)}
                         placeholder="Enter your name"
                         disabled={isCreatingGame}
-                        onKeyDown={(e) => e.key === 'Enter' && createNewGame()}
+                        onKeyDown={(e) => e.key === "Enter" && createNewGame()}
                       />
                     </div>
-                    
-                    <Button 
-                      onClick={createNewGame} 
+
+                    <Button
+                      onClick={createNewGame}
                       className="w-full bg-indigo-600 hover:bg-indigo-700"
                       disabled={isCreatingGame || !hostName.trim()}
                     >
@@ -629,9 +706,11 @@ const Admin = () => {
               ) : (
                 <>
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">Connect to Existing Game</h2>
-                    <Button 
-                      variant="ghost" 
+                    <h2 className="text-xl font-semibold">
+                      Connect to Existing Game
+                    </h2>
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => setShowCreateGame(true)}
                       className="text-gray-500 hover:text-gray-700"
@@ -639,26 +718,52 @@ const Admin = () => {
                       ← Create new game instead
                     </Button>
                   </div>
-                  
-                  <div className="flex space-x-4">
-                    <Input
-                      placeholder="Enter game code (e.g., ABC)"
-                      value={gameCode}
-                      onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-                      maxLength={3}
-                      className="flex-1"
-                    />
-                    <Button
-                      onClick={loadGameData}
-                      disabled={!gameCode || adminState.loading}
-                      className="px-6"
-                    >
-                      {adminState.loading ? 'Loading...' : 'Connect'}
-                    </Button>
+
+                  <div className="space-y-4">
+                    <div className="flex space-x-4">
+                      <Input
+                        placeholder="Enter game code (e.g., ABC)"
+                        value={gameCode}
+                        onChange={(e) =>
+                          setGameCode(e.target.value.toUpperCase())
+                        }
+                        maxLength={3}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={loadGameData}
+                        disabled={!gameCode || adminState.loading}
+                        className="px-6"
+                      >
+                        {adminState.loading ? "Loading..." : "Connect"}
+                      </Button>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="text-sm text-gray-500 mb-2">or</div>
+                      <Button
+                        onClick={loadAvailableGames}
+                        variant="outline"
+                        disabled={adminState.loading}
+                        className="w-full"
+                      >
+                        {adminState.loading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Loading Games...
+                          </>
+                        ) : (
+                          <>
+                            <Monitor className="mr-2 h-4 w-4" />
+                            Browse All Available Games
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </>
               )}
-              
+
               {adminState.error && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-md">
                   <div className="flex items-center">
@@ -678,7 +783,10 @@ const Admin = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-2">Game Active</h2>
                 <p className="text-indigo-100">
-                  Announce this code to your players: <span className="font-mono text-3xl font-bold text-white">{gameCode}</span>
+                  Announce this code to your players:{" "}
+                  <span className="font-mono text-3xl font-bold text-white">
+                    {gameCode}
+                  </span>
                 </p>
               </div>
               <div className="text-right">
@@ -716,21 +824,27 @@ const Admin = () => {
           <TeamManagement
             players={adminState.teamData}
             scores={Object.fromEntries(
-              Object.entries(adminState.teamData).map(([team, data]) => [team, data.scores])
+              Object.entries(adminState.teamData).map(([team, data]) => [
+                team,
+                data.scores,
+              ]),
             )}
             onAdjustScore={adjustScore}
           />
         )}
 
         {/* Current Question Display - Only show when game is connected */}
-        {adminState.selectedGame && adminState.selectedGame.current_question && (
-          <QuestionDisplay
-            currentQuestion={adminState.selectedGame.current_question - 1}
-            question={sampleQuestions[adminState.selectedGame.current_question - 1]}
-            gameId={adminState.selectedGame.id}
-            totalPlayers={totalPlayers}
-          />
-        )}
+        {adminState.selectedGame &&
+          adminState.selectedGame.current_question && (
+            <QuestionDisplay
+              currentQuestion={adminState.selectedGame.current_question - 1}
+              question={
+                sampleQuestions[adminState.selectedGame.current_question - 1]
+              }
+              gameId={adminState.selectedGame.id}
+              totalPlayers={totalPlayers}
+            />
+          )}
 
         {/* Game Info Display */}
         {adminState.selectedGame && (
@@ -738,16 +852,20 @@ const Admin = () => {
             <h3 className="font-semibold mb-2">Game Information</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium">Game Code:</span> {adminState.selectedGame.game_code}
+                <span className="font-medium">Game Code:</span>{" "}
+                {adminState.selectedGame.game_code}
               </div>
               <div>
-                <span className="font-medium">Status:</span> {adminState.selectedGame.status}
+                <span className="font-medium">Status:</span>{" "}
+                {adminState.selectedGame.status}
               </div>
               <div>
-                <span className="font-medium">Created:</span> {new Date(adminState.selectedGame.created_at).toLocaleString()}
+                <span className="font-medium">Created:</span>{" "}
+                {new Date(adminState.selectedGame.created_at).toLocaleString()}
               </div>
               <div>
-                <span className="font-medium">Current Question:</span> {adminState.selectedGame.current_question || 'Not started'}
+                <span className="font-medium">Current Question:</span>{" "}
+                {adminState.selectedGame.current_question || "Not started"}
               </div>
             </div>
           </div>
