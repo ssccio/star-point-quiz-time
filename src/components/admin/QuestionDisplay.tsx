@@ -37,7 +37,10 @@ export const QuestionDisplay = ({ currentQuestion, question, gameId, totalPlayer
     const loadAnswers = async () => {
       setLoading(true);
       try {
-        const questionAnswers = await gameService.getQuestionAnswers(gameId, currentQuestion + 1);
+        const questionNumber = currentQuestion + 1;
+        console.log('Loading answers for:', { gameId, currentQuestion, questionNumber });
+        const questionAnswers = await gameService.getQuestionAnswers(gameId, questionNumber);
+        console.log('Loaded answers:', questionAnswers);
         setAnswers(questionAnswers);
       } catch (error) {
         console.error('Failed to load answers:', error);
@@ -50,6 +53,7 @@ export const QuestionDisplay = ({ currentQuestion, question, gameId, totalPlayer
 
     // Subscribe to real-time answer updates
     const subscription = gameService.subscribeToAnswers(gameId, currentQuestion + 1, (updatedAnswers) => {
+      console.log('Answer subscription update:', updatedAnswers);
       setAnswers(updatedAnswers);
     });
 
