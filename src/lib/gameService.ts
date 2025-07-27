@@ -502,7 +502,7 @@ export const gameService = {
   subscribeToAnswers(
     gameId: string,
     questionNumber: number,
-    callback: (answers: any[]) => void
+    callback: (answers: PlayerAnswer[]) => void
   ) {
     if (isDevelopmentMode) {
       // Mock subscription - just return a fake unsubscribe function

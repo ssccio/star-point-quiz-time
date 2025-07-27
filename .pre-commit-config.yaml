@@ -18,10 +18,6 @@ repos:
         exclude: 'tsconfig.*\.json$'
       - id: check-yaml
         files: '\.ya?ml$'
-      - id: pretty-format-json
-        args: ["--autofix", "--indent=2"]
-        files: '\.json$'
-        exclude: '(package-lock\.json|tsconfig.*\.json)$'
 
   # Prettier for code formatting (using local installation)
   - repo: local
