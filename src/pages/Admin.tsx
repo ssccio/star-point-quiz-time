@@ -1,34 +1,23 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Monitor,
-  AlertTriangle,
-  QrCode,
-  Printer,
-  Plus,
-  Loader2,
-  Crown,
-  Trash2,
-  Calendar,
-  Users,
-  ArrowLeft,
-} from "lucide-react";
-import { sampleQuestions } from "@/utils/sampleData";
-import { loadDefaultQuestions } from "@/utils/questionLoader";
-import { APP_CONFIG } from "@/utils/config";
-import { AdminLogin } from "@/components/admin/AdminLogin";
-import { GameControls } from "@/components/admin/GameControls";
-import { GameStatus } from "@/components/admin/GameStatus";
-import { TeamManagement } from "@/components/admin/TeamManagement";
-import { QuestionDisplay } from "@/components/admin/QuestionDisplay";
-import { gameService } from "@/lib/gameService";
-import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
-import type { Database } from "@/lib/supabase";
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Monitor, AlertTriangle, QrCode, Printer, Plus, Loader2, Crown, Trash2, Calendar, Users, ArrowLeft } from 'lucide-react';
+import { sampleQuestions } from '@/utils/sampleData';
+import { loadDefaultQuestions, loadQuestionsFromYAML, getAvailableQuestionSets } from '@/utils/questionLoader';
+import { APP_CONFIG } from '@/utils/config';
+import { AdminLogin } from '@/components/admin/AdminLogin';
+import { GameControls } from '@/components/admin/GameControls';
+import { GameStatus } from '@/components/admin/GameStatus';
+import { TeamManagement } from '@/components/admin/TeamManagement';
+import { QuestionDisplay } from '@/components/admin/QuestionDisplay';
+import { gameService } from '@/lib/gameService';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import type { Database } from '@/lib/supabase';
 
 type Game = Database["public"]["Tables"]["games"]["Row"];
 type Player = Database["public"]["Tables"]["players"]["Row"];
@@ -59,6 +48,7 @@ const Admin = () => {
   const [isCreatingGame, setIsCreatingGame] = useState(false);
   const [showCreateGame, setShowCreateGame] = useState(true);
   const [totalQuestions, setTotalQuestions] = useState(sampleQuestions.length);
+  const [selectedQuestionSet, setSelectedQuestionSet] = useState('rob-morris-biography');
   const [adminState, setAdminState] = useState<AdminState>({
     selectedGame: null,
     players: [],
@@ -119,15 +109,23 @@ const Admin = () => {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const { questions } = await loadDefaultQuestions();
+        const { questions } = await loadQuestionsFromYAML(`${selectedQuestionSet}.yaml`);
         setTotalQuestions(questions.length);
       } catch (error) {
-        console.warn("Using fallback question count:", error);
+        console.warn('Using fallback question count:', error);
+        // Fallback to default questions
+        try {
+          const { questions } = await loadDefaultQuestions();
+          setTotalQuestions(questions.length);
+        } catch (fallbackError) {
+          console.warn('Fallback also failed, using sample questions count');
+          setTotalQuestions(sampleQuestions.length);
+        }
       }
     };
 
     loadQuestions();
-  }, []);
+  }, [selectedQuestionSet]);
 
   const loadGameData = useCallback(async () => {
     setAdminState((prev) => ({ ...prev, loading: true, error: null }));
@@ -687,7 +685,33 @@ const Admin = () => {
                       />
                     </div>
 
-                    <Button
+                    <div>
+                      <Label htmlFor="questionSet">Question Set</Label>
+                      <Select 
+                        value={selectedQuestionSet} 
+                        onValueChange={setSelectedQuestionSet}
+                        disabled={isCreatingGame}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select question set" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getAvailableQuestionSets().map((set) => (
+                            <SelectItem key={set.id} value={set.id}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{set.title}</span>
+                                <span className="text-sm text-gray-500">{set.description}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {totalQuestions} questions available
+                      </p>
+                    </div>
+                    
+                    <Button 
                       onClick={createNewGame}
                       className="w-full bg-indigo-600 hover:bg-indigo-700"
                       disabled={isCreatingGame || !hostName.trim()}

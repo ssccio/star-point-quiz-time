@@ -68,10 +68,14 @@ export function getAvailableQuestionSets(): {
   // In the future, this could be dynamic based on available files
   return [
     {
-      id: "rob-morris-easy",
-      title: "Rob Morris & Eastern Star Basics",
-      description:
-        "Easy questions about Rob Morris and fundamental Eastern Star knowledge",
+      id: 'rob-morris-biography',
+      title: 'Rob Morris Biography & Eastern Star History',
+      description: 'Comprehensive questions about Rob Morris\'s life and the founding of the Eastern Star'
+    },
+    {
+      id: 'rob-morris-easy',
+      title: 'Rob Morris & Eastern Star Basics',
+      description: 'Easy questions about Rob Morris and fundamental Eastern Star knowledge'
     },
     {
       id: "eastern-star-basics",
@@ -81,10 +85,10 @@ export function getAvailableQuestionSets(): {
   ];
 }
 
-// Load the default question set (Rob Morris Easy)
+// Load the default question set (Rob Morris Biography)
 export async function loadDefaultQuestions() {
   try {
-    return await loadQuestionsFromYAML("rob-morris-easy.yaml");
+    return await loadQuestionsFromYAML('rob-morris-biography.yaml');
   } catch (error) {
     console.warn(
       "Failed to load YAML questions, falling back to hardcoded questions"

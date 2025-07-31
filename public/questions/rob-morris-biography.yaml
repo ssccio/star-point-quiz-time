@@ -1,0 +1,212 @@
+# Rob Morris Biography - Comprehensive questions for trivia game
+# Focus: Rob Morris's life, career, and founding of the Eastern Star
+# AI-generated questions with detailed biographical information
+
+metadata:
+  title: "Rob Morris Biography & Eastern Star History"
+  description: "Comprehensive questions about Rob Morris's life and the founding of the Eastern Star"
+  difficulty: "medium"
+  category: "rob-morris-biography"
+  created: "2025-01-31"
+  version: "1.0"
+
+questions:
+  - id: "1"
+    text: "In what year was Rob Morris, founder of the Order of the Eastern Star, born?"
+    options:
+      - "1808"
+      - "1818"
+      - "1828"
+      - "1838"
+    correct_answer: "1818"
+    explanation: "Rob Morris was born on August 31, 1818, near Boston, Massachusetts. This date is widely recognized as his birth year in historical records related to his life and the Order of the Eastern Star."
+    
+  - id: "2"
+    text: "Near which city was Rob Morris born?"
+    options:
+      - "Philadelphia"
+      - "Boston"
+      - "New York City"
+      - "Chicago"
+    correct_answer: "Boston"
+    explanation: "Morris was born near Boston, Massachusetts, a key detail in his early life before he moved south to pursue his career."
+    
+  - id: "3"
+    text: "What was the profession of Rob Morris's parents?"
+    options:
+      - "Farmers"
+      - "Teachers"
+      - "Merchants"
+      - "Lawyers"
+    correct_answer: "Teachers"
+    explanation: "Both of Rob Morris's parents were teachers, and he initially followed in their footsteps before becoming a prominent Freemason and poet."
+    
+  - id: "4"
+    text: "What was Rob Morris's profession early in his career?"
+    options:
+      - "Doctor"
+      - "Lawyer"
+      - "Teacher"
+      - "Engineer"
+    correct_answer: "Teacher"
+    explanation: "Like his parents, Morris started as a teacher, working in Massachusetts and later in Mississippi."
+    
+  - id: "5"
+    text: "In which state did Rob Morris continue his teaching career after moving south?"
+    options:
+      - "Georgia"
+      - "Mississippi"
+      - "Alabama"
+      - "Louisiana"
+    correct_answer: "Mississippi"
+    explanation: "Morris moved to Mississippi, where he taught and later became involved in Freemasonry, which influenced his creation of the Order of the Eastern Star."
+    
+  - id: "6"
+    text: "In what year was Rob Morris initiated into Freemasonry?"
+    options:
+      - "1840"
+      - "1846"
+      - "1850"
+      - "1856"
+    correct_answer: "1846"
+    explanation: "Morris was initiated into Freemasonry on March 5, 1846, by James M. Howry in Mississippi, marking a pivotal moment in his life."
+    
+  - id: "7"
+    text: "What was the original name of the ritual Rob Morris wrote for the Order of the Eastern Star?"
+    options:
+      - "The Star of Bethlehem"
+      - "The Rosary of the Eastern Star"
+      - "The Masonic Light"
+      - "The Eastern Star Guide"
+    correct_answer: "The Rosary of the Eastern Star"
+    explanation: "While teaching in Mississippi in 1849-1850, Morris wrote the first ritual for the Order, calling it The Rosary of the Eastern Star."
+    
+  - id: "8"
+    text: "Where was Rob Morris teaching when he wrote the first Eastern Star ritual?"
+    options:
+      - "Eureka Masonic College"
+      - "Harvard University"
+      - "Boston Academy"
+      - "Kentucky State College"
+    correct_answer: "Eureka Masonic College"
+    explanation: "Morris wrote the ritual while teaching at Eureka Masonic College in Pickens, Mississippi, a key location in the Order's origin."
+    
+  - id: "9"
+    text: "What inspired Rob Morris to create the Order of the Eastern Star?"
+    options:
+      - "A desire to include women in Masonic activities"
+      - "A royal decree"
+      - "A religious vision"
+      - "A business opportunity"
+    correct_answer: "A desire to include women in Masonic activities"
+    explanation: "Morris wanted female relatives of Masons to share in the benefits of Freemasonry, leading to the creation of the Order."
+    
+  - id: "10"
+    text: "Who did Rob Morris transfer leadership of the Order to before traveling to the Holy Land?"
+    options:
+      - "Robert Burns"
+      - "Robert Macoy"
+      - "James Howry"
+      - "Charlotte Morris"
+    correct_answer: "Robert Macoy"
+    explanation: "In 1866, Morris handed over organizational authority to Robert Macoy, a printer and publisher who helped formalize the Order."
+    
+  - id: "11"
+    text: "In what year did Rob Morris serve as Grand Master of the Grand Lodge of Kentucky?"
+    options:
+      - "1850-1851"
+      - "1858-1859"
+      - "1865-1866"
+      - "1870-1871"
+    correct_answer: "1858-1859"
+    explanation: "Rob Morris served as Grand Master of the Grand Lodge of Kentucky during 1858-1859, a significant role in his Masonic career."
+    
+  - id: "12"
+    text: "What was Rob Morris's nickname as a prominent Freemason?"
+    options:
+      - "The Masonic Poet"
+      - "The Eastern Star"
+      - "The Grand Scribe"
+      - "The Lodge Leader"
+    correct_answer: "The Masonic Poet"
+    explanation: "Morris was known as 'The Masonic Poet' for his poetry, which often celebrated Masonic themes and values."
+    
+  - id: "13"
+    text: "What was the name of the publication Rob Morris founded in 1855?"
+    options:
+      - "The Masonic Star"
+      - "The Voice of Masonry"
+      - "The Eastern Light"
+      - "The Freemason's Journal"
+    correct_answer: "The Voice of Masonry"
+    explanation: "Morris started 'The Voice of Masonry' in 1855, a key publication for sharing Masonic ideas and promoting the Order."
+    
+  - id: "14"
+    text: "How many degrees were included in Rob Morris's original Eastern Star ritual?"
+    options:
+      - "Three"
+      - "Five"
+      - "Seven"
+      - "Nine"
+    correct_answer: "Five"
+    explanation: "Morris's original ritual, 'The Rosary of the Eastern Star', included five degrees, each tied to a biblical heroine."
+    
+  - id: "15"
+    text: "Which biblical figure is NOT one of the five heroines in the Order of the Eastern Star?"
+    options:
+      - "Ruth"
+      - "Esther"
+      - "Mary Magdalene"
+      - "Martha"
+    correct_answer: "Mary Magdalene"
+    explanation: "The five heroines in the Order are Adah, Ruth, Esther, Martha, and Electa, symbolizing virtues like fidelity and charity."
+    
+  - id: "16"
+    text: "Where did Rob Morris travel in 1867 that influenced his Masonic writings?"
+    options:
+      - "Europe"
+      - "The Holy Land"
+      - "South America"
+      - "Asia"
+    correct_answer: "The Holy Land"
+    explanation: "Morris's 1867 trip to the Holy Land deepened his Masonic and poetic writings, including his work on the Eastern Star."
+    
+  - id: "17"
+    text: "What role did Rob Morris's wife, Charlotte, play in the Order of the Eastern Star?"
+    options:
+      - "She was the first Grand Matron"
+      - "She wrote the rituals"
+      - "She was an honorary member"
+      - "She had no official role"
+    correct_answer: "She had no official role"
+    explanation: "Charlotte supported Morris but had no formal role in the Order's organization or rituals."
+    
+  - id: "18"
+    text: "In what year was the General Grand Chapter of the Order of the Eastern Star established?"
+    options:
+      - "1860"
+      - "1876"
+      - "1885"
+      - "1890"
+    correct_answer: "1876"
+    explanation: "The General Grand Chapter was formed in 1876, formalizing the Order's structure after Morris's contributions."
+    
+  - id: "19"
+    text: "What was Rob Morris's primary motivation for creating the Order of the Eastern Star?"
+    options:
+      - "Financial gain"
+      - "To honor his wife"
+      - "To involve women in Masonic ideals"
+      - "To start a new religion"
+    correct_answer: "To involve women in Masonic ideals"
+    explanation: "Morris created the Order to extend Masonic principles to women, particularly relatives of Masons, fostering shared values."
+    
+  - id: "20"
+    text: "Where did Rob Morris spend his final years before passing away?"
+    options:
+      - "New York"
+      - "Mississippi"
+      - "Kentucky"
+      - "Indiana"
+    correct_answer: "Kentucky"
+    explanation: "Morris lived in La Grange, Kentucky, during his later years, where he continued his Masonic work until his death in 1888."

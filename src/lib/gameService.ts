@@ -467,35 +467,41 @@ export const gameService = {
     }
 
     const client = ensureSupabaseConfigured();
-
-    const { data } = await client
-      .from("answers")
-      .select(
-        `
+    
+    console.log('GameService: Querying answers for:', { gameId, questionNumber });
+    
+    const { data, error } = await client
+      .from('answers')
+      .select(`
         player_id,
         answer,
         is_correct,
         answered_at,
+        question_id,
         players!inner (
           name,
           team
         )
-      `
-      )
+      `)
       .eq("game_id", gameId)
       .eq("question_id", questionNumber)
       .order("answered_at");
 
-    return (
-      data?.map((answer) => ({
-        player_id: answer.player_id,
-        player_name: answer.players.name,
-        team: answer.players.team,
-        answer: answer.answer,
-        is_correct: answer.is_correct,
-        answered_at: answer.answered_at,
-      })) || []
-    );
+    console.log('GameService: Query result:', { data, error, queryParams: { gameId, questionNumber } });
+    
+    if (error) {
+      console.error('GameService: Query error:', error);
+      return [];
+    }
+
+    return data?.map(answer => ({
+      player_id: answer.player_id,
+      player_name: answer.players.name,
+      team: answer.players.team,
+      answer: answer.answer,
+      is_correct: answer.is_correct,
+      answered_at: answer.answered_at
+    })) || []
   },
 
   // Subscribe to answer updates for admin
