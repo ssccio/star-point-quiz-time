@@ -51,8 +51,15 @@ const Results = () => {
     }
   };
 
-  const handlePlayAgain = () => {
-    navigate("/");
+  const handleJoinAnotherGame = () => {
+    navigate("/new-game", {
+      state: {
+        playerName,
+        team: teamId,
+        finalScores,
+        playerRank,
+      },
+    });
   };
 
   return (
@@ -186,17 +193,17 @@ const Results = () => {
         {/* Actions */}
         <div className="space-y-3">
           <Button
-            onClick={handlePlayAgain}
+            onClick={handleJoinAnotherGame}
             className="min-h-[60px] w-full bg-indigo-600 px-6 py-4 text-lg font-semibold hover:bg-indigo-700"
           >
-            New Game
+            Join Another Game
           </Button>
           <Button
-            onClick={() => (window.location.href = "/")}
+            onClick={() => navigate("/")}
             variant="outline"
             className="min-h-[60px] w-full px-6 py-4 text-lg font-semibold"
           >
-            Return to Lobby
+            Return to Main Menu
           </Button>
         </div>
 
