@@ -135,7 +135,7 @@ const NewGame = () => {
           <h2 className="mb-4 text-center text-lg font-semibold text-gray-900">
             Your Last Game
           </h2>
-          
+
           <div className="space-y-4">
             {/* Team & Score */}
             <div className="text-center">
@@ -174,7 +174,7 @@ const NewGame = () => {
           <h2 className="mb-4 text-center text-lg font-semibold text-gray-900">
             Join Another Game
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="gameCode">Enter New Game Code</Label>

@@ -88,7 +88,7 @@ const Game = () => {
         />
 
         {/* Timer */}
-        {gameState.phase === "question" && (
+        {gameState.phase === "question" && !gameState.hasSubmitted && (
           <Timer timeRemaining={timeRemaining} totalTime={30} />
         )}
 

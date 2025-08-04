@@ -20,11 +20,18 @@ interface QuestionAnswer {
   answered_at: string;
 }
 
+interface Player {
+  id: string;
+  name: string;
+  team: string;
+}
+
 interface QuestionDisplayProps {
   currentQuestion: number;
   question: Question;
   gameId?: string;
   totalPlayers?: number;
+  allPlayers?: Player[];
 }
 
 export const QuestionDisplay = ({
@@ -32,6 +39,7 @@ export const QuestionDisplay = ({
   question,
   gameId,
   totalPlayers = 0,
+  allPlayers = [],
 }: QuestionDisplayProps) => {
   const [answers, setAnswers] = useState<QuestionAnswer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,6 +88,17 @@ export const QuestionDisplay = ({
 
   const answeredCount = answers.length;
   const correctCount = answers.filter((a) => a.is_correct).length;
+
+  // Calculate unanswered players grouped by team
+  const answeredPlayerIds = new Set(answers.map(a => a.player_id));
+  const unansweredPlayers = allPlayers.filter(player => !answeredPlayerIds.has(player.id));
+  const unansweredByTeam = unansweredPlayers.reduce((acc, player) => {
+    if (!acc[player.team]) {
+      acc[player.team] = [];
+    }
+    acc[player.team].push(player);
+    return acc;
+  }, {} as Record<string, Player[]>);
   return (
     <div className="space-y-4">
       <Card className="p-6">
@@ -207,6 +226,49 @@ export const QuestionDisplay = ({
                   </div>
                 );
               })}
+          </div>
+        </Card>
+      )}
+
+      {/* Unanswered Players by Team */}
+      {gameId && Object.keys(unansweredByTeam).length > 0 && (
+        <Card className="p-6">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            Waiting for Answers ({unansweredPlayers.length} players)
+          </h3>
+          <div className="space-y-3">
+            {Object.entries(unansweredByTeam).map(([teamId, players]) => {
+              const team = TEAMS[teamId as keyof typeof TEAMS];
+              const teamColor = TEAM_COLORS[teamId as keyof typeof TEAM_COLORS];
+
+              return (
+                <div key={teamId} className="rounded-lg bg-gray-50 p-3">
+                  <div className="mb-2 flex items-center space-x-2">
+                    <div
+                      className="h-4 w-4 rounded-full"
+                      style={{ backgroundColor: teamColor }}
+                    />
+                    <span className="font-semibold text-gray-900">
+                      Team {team?.name} ({players.length} pending)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {players.map(player => (
+                      <div
+                        key={player.id}
+                        className="flex items-center space-x-1 rounded-md bg-white px-2 py-1 text-sm"
+                      >
+                        <div
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: teamColor }}
+                        />
+                        <span>{player.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}

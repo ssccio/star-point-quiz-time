@@ -249,14 +249,17 @@ export const gameService = {
 
   // Subscribe to player updates
   subscribeToPlayers(gameId: string, callback: (players: Player[]) => void) {
-    if (isDevelopmentMode) {
-      // Mock subscription - just return a fake unsubscribe function
+    // Try to use real Supabase if available, even in development mode
+    if (isDevelopmentMode && !isSupabaseConfigured()) {
+      // Only use mock if Supabase is truly not configured
+      console.log("Using mock player subscription - Supabase not configured");
       return {
         unsubscribe: () => Promise.resolve({ error: null }),
       };
     }
 
     const client = ensureSupabaseConfigured();
+    console.log("Setting up REAL player subscription for gameId:", gameId);
     return client
       .channel(`players:${gameId}`)
       .on(
@@ -351,15 +354,17 @@ export const gameService = {
 
   // Subscribe to game updates
   subscribeToGame(gameId: string, callback: (game: Game) => void) {
-    if (isDevelopmentMode) {
-      // Mock subscription - just return a fake unsubscribe function
+    // Try to use real Supabase if available, even in development mode
+    if (isDevelopmentMode && !isSupabaseConfigured()) {
+      // Only use mock if Supabase is truly not configured
+      console.log("Using mock subscription - Supabase not configured");
       return {
         unsubscribe: () => Promise.resolve({ error: null }),
       };
     }
 
     const client = ensureSupabaseConfigured();
-    console.log("Setting up game subscription for gameId:", gameId);
+    console.log("Setting up REAL game subscription for gameId:", gameId);
 
     const channel = client
       .channel(`game:${gameId}`)
@@ -525,14 +530,17 @@ export const gameService = {
     questionNumber: number,
     callback: (answers: PlayerAnswer[]) => void
   ) {
-    if (isDevelopmentMode) {
-      // Mock subscription - just return a fake unsubscribe function
+    // Try to use real Supabase if available, even in development mode
+    if (isDevelopmentMode && !isSupabaseConfigured()) {
+      // Only use mock if Supabase is truly not configured
+      console.log("Using mock answer subscription - Supabase not configured");
       return {
         unsubscribe: () => Promise.resolve({ error: null }),
       };
     }
 
     const client = ensureSupabaseConfigured();
+    console.log("Setting up REAL answer subscription for gameId:", gameId, "question:", questionNumber);
     return client
       .channel(`answers:${gameId}:${questionNumber}`)
       .on(
@@ -556,7 +564,9 @@ export const gameService = {
     console.log("🔄 nextQuestion called for gameId:", gameId);
     console.trace("Call stack for nextQuestion:");
 
-    if (isDevelopmentMode) {
+    // Use mock only if Supabase is truly not configured
+    if (isDevelopmentMode && !isSupabaseConfigured()) {
+      console.log("Using mock nextQuestion - Supabase not configured");
       const game = mockStore.games.get(gameId);
       if (!game) {
         throw new GameServiceError("Game not found", "GAME_NOT_FOUND", 404);
@@ -577,6 +587,7 @@ export const gameService = {
     }
 
     const client = ensureSupabaseConfigured();
+    console.log("Using REAL nextQuestion with Supabase");
 
     // Get current question number first
     const { data: game } = await client
@@ -590,6 +601,7 @@ export const gameService = {
     }
 
     const nextQuestionNumber = (game.current_question || 0) + 1;
+    console.log("📈 Advancing question from", game.current_question, "to", nextQuestionNumber);
 
     const { error } = await client
       .from("games")

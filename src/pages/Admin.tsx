@@ -49,6 +49,7 @@ const Admin = () => {
   const [showCreateGame, setShowCreateGame] = useState(true);
   const [totalQuestions, setTotalQuestions] = useState(sampleQuestions.length);
   const [selectedQuestionSet, setSelectedQuestionSet] = useState('rob-morris-biography');
+  const [loadedQuestions, setLoadedQuestions] = useState(sampleQuestions);
   const [adminState, setAdminState] = useState<AdminState>({
     selectedGame: null,
     players: [],
@@ -105,21 +106,24 @@ const Admin = () => {
     }
   }, []);
 
-  // Load questions to get accurate count
+  // Load questions to get accurate count and questions
   useEffect(() => {
     const loadQuestions = async () => {
       try {
         const { questions } = await loadQuestionsFromYAML(`${selectedQuestionSet}.yaml`);
         setTotalQuestions(questions.length);
+        setLoadedQuestions(questions);
       } catch (error) {
         console.warn('Using fallback question count:', error);
         // Fallback to default questions
         try {
           const { questions } = await loadDefaultQuestions();
           setTotalQuestions(questions.length);
+          setLoadedQuestions(questions);
         } catch (fallbackError) {
           console.warn('Fallback also failed, using sample questions count');
           setTotalQuestions(sampleQuestions.length);
+          setLoadedQuestions(sampleQuestions);
         }
       }
     };
@@ -868,10 +872,11 @@ const Admin = () => {
             <QuestionDisplay
               currentQuestion={adminState.selectedGame.current_question - 1}
               question={
-                sampleQuestions[adminState.selectedGame.current_question - 1]
+                loadedQuestions[adminState.selectedGame.current_question - 1]
               }
               gameId={adminState.selectedGame.id}
               totalPlayers={totalPlayers}
+              allPlayers={adminState.players}
             />
           )}
 
