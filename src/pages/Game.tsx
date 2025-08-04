@@ -42,7 +42,7 @@ const Game = () => {
     playerId
   );
   const { timeRemaining, resetTimer } = useGameTimer(
-    60,
+    30,
     gameState.phase === "question" && !gameState.hasSubmitted,
     gameState.handleTimeUp
   );
@@ -56,7 +56,7 @@ const Game = () => {
 
   useEffect(() => {
     if (gameState.phase === "question") {
-      resetTimer(60);
+      resetTimer(30);
     }
   }, [gameState.currentQuestionIndex, gameState.phase, resetTimer]);
 
@@ -89,7 +89,7 @@ const Game = () => {
 
         {/* Timer */}
         {gameState.phase === "question" && (
-          <Timer timeRemaining={timeRemaining} totalTime={60} />
+          <Timer timeRemaining={timeRemaining} totalTime={30} />
         )}
 
         {/* Question with larger text */}

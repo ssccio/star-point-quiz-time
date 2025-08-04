@@ -687,8 +687,8 @@ const Admin = () => {
 
                     <div>
                       <Label htmlFor="questionSet">Question Set</Label>
-                      <Select 
-                        value={selectedQuestionSet} 
+                      <Select
+                        value={selectedQuestionSet}
                         onValueChange={setSelectedQuestionSet}
                         disabled={isCreatingGame}
                       >
@@ -710,8 +710,8 @@ const Admin = () => {
                         {totalQuestions} questions available
                       </p>
                     </div>
-                    
-                    <Button 
+
+                    <Button
                       onClick={createNewGame}
                       className="w-full bg-indigo-600 hover:bg-indigo-700"
                       disabled={isCreatingGame || !hostName.trim()}
@@ -840,7 +840,7 @@ const Admin = () => {
           <GameStatus
             totalConnected={totalConnected}
             totalPlayers={totalPlayers}
-            timerRemaining={60} // TODO: Implement real timer
+            timerRemaining={30} // TODO: Implement real timer
             currentQuestion={
               (adminState.selectedGame.current_question || 1) - 1
             }

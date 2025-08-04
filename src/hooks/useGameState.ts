@@ -85,12 +85,43 @@ export const useGameState = (
   useEffect(() => {
     if (isPracticeMode || !gameId) return;
 
+    console.log('Setting up game subscription for gameId:', gameId);
+
+    // Get game code from localStorage
+    const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
+    const gameCode = gameData.gameCode;
+
+    // Initial sync - get current game state on mount/reload
+    const syncGameState = async () => {
+      if (!gameCode) return;
+      try {
+        const game = await gameService.getGame(gameCode);
+        if (game && game.current_question !== currentQuestionIndex + 1) {
+          console.log('Syncing question from', currentQuestionIndex + 1, 'to', game.current_question);
+          setCurrentQuestionIndex((game.current_question || 1) - 1);
+          setPhase("question");
+          setSelectedAnswer(null);
+          setHasSubmitted(false);
+          // Reset teammates answered status for new question
+          setTeamMates((prev) =>
+            prev.map((mate) => ({ ...mate, hasAnswered: false }))
+          );
+        }
+      } catch (error) {
+        console.error('Failed to sync game state:', error);
+      }
+    };
+
+    syncGameState();
+
     const subscription = gameService.subscribeToGame(gameId, (updatedGame) => {
+      console.log('Game update received:', updatedGame);
       // Sync current question index with game state
       if (
         updatedGame.current_question &&
         updatedGame.current_question !== currentQuestionIndex + 1
       ) {
+        console.log('Question changed from', currentQuestionIndex + 1, 'to', updatedGame.current_question);
         setCurrentQuestionIndex(updatedGame.current_question - 1);
         setPhase("question");
         setSelectedAnswer(null);

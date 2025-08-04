@@ -27,6 +27,15 @@ type Game = Database["public"]["Tables"]["games"]["Row"];
 type Player = Database["public"]["Tables"]["players"]["Row"];
 type Answer = Database["public"]["Tables"]["answers"]["Row"];
 
+export interface PlayerAnswer {
+  player_id: string;
+  player_name: string;
+  team: string;
+  answer: string;
+  is_correct: boolean;
+  answered_at: string;
+}
+
 // Mock data store for development mode
 const mockStore = {
   games: new Map<string, Game>(),
@@ -324,12 +333,18 @@ export const gameService = {
         .single();
 
       if (player) {
+        const newScore = (player.score || 0) + 20;
+        console.log(`Updating player ${playerId} score from ${player.score} to ${newScore}`);
+
         const { error: scoreError } = await client
           .from("players")
-          .update({ score: player.score + 20 })
+          .update({ score: newScore })
           .eq("id", playerId);
 
-        if (scoreError) throw scoreError;
+        if (scoreError) {
+          console.error('Score update error:', scoreError);
+          throw scoreError;
+        }
       }
     }
   },
@@ -467,16 +482,16 @@ export const gameService = {
     }
 
     const client = ensureSupabaseConfigured();
-    
+
     console.log('GameService: Querying answers for:', { gameId, questionNumber });
-    
+
     const { data, error } = await client
       .from('answers')
       .select(`
         player_id,
         answer,
         is_correct,
-        answered_at,
+        submitted_at,
         question_id,
         players!inner (
           name,
@@ -485,10 +500,10 @@ export const gameService = {
       `)
       .eq("game_id", gameId)
       .eq("question_id", questionNumber)
-      .order("answered_at");
+      .order("submitted_at");
 
     console.log('GameService: Query result:', { data, error, queryParams: { gameId, questionNumber } });
-    
+
     if (error) {
       console.error('GameService: Query error:', error);
       return [];
@@ -500,7 +515,7 @@ export const gameService = {
       team: answer.players.team,
       answer: answer.answer,
       is_correct: answer.is_correct,
-      answered_at: answer.answered_at
+      answered_at: answer.submitted_at
     })) || []
   },
 
