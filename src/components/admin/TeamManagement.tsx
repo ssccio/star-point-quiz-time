@@ -8,6 +8,8 @@ interface TeamData {
   count: number;
   connected: number;
   names: string[];
+  queuedCount?: number;
+  queuedNames?: string[];
 }
 
 interface TeamManagementProps {
@@ -69,22 +71,52 @@ export const TeamManagement = ({
               </div>
 
               <div className="space-y-2">
-                <div className="flex flex-wrap gap-1">
-                  {teamData.names.map((name, index) => (
-                    <Badge
-                      key={index}
-                      variant={
-                        index < teamData.connected ? "default" : "outline"
-                      }
-                      className="text-xs"
-                    >
-                      {name}
-                      {index >= teamData.connected && (
-                        <AlertTriangle className="ml-1 h-3 w-3" />
-                      )}
-                    </Badge>
-                  ))}
+                {/* Active Players */}
+                <div>
+                  <div className="mb-1 text-xs font-medium text-gray-600">
+                    Active Players
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {teamData.names.map((name, index) => (
+                      <Badge
+                        key={index}
+                        variant={
+                          index < teamData.connected ? "default" : "outline"
+                        }
+                        className="text-xs"
+                      >
+                        {name}
+                        {index >= teamData.connected && (
+                          <AlertTriangle className="ml-1 h-3 w-3" />
+                        )}
+                      </Badge>
+                    ))}
+                    {teamData.names.length === 0 && (
+                      <span className="text-xs text-gray-400">No active players</span>
+                    )}
+                  </div>
                 </div>
+
+                {/* Queued Players */}
+                {teamData.queuedCount && teamData.queuedCount > 0 && (
+                  <div>
+                    <div className="mb-1 text-xs font-medium text-orange-600">
+                      Queued Players ({teamData.queuedCount})
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {teamData.queuedNames?.map((name, index) => (
+                        <Badge
+                          key={`queued-${index}`}
+                          variant="secondary"
+                          className="text-xs bg-orange-100 text-orange-800 border-orange-300"
+                        >
+                          {name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
                 <div className="flex space-x-2">
                   <Button

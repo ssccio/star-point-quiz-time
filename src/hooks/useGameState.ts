@@ -87,9 +87,10 @@ export const useGameState = (
 
     console.log('Setting up game subscription for gameId:', gameId);
 
-    // Get game code from localStorage
+    // Get game data from localStorage
     const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
     const gameCode = gameData.gameCode;
+    const isQueued = gameData.isQueued;
 
     // Initial sync - get current game state on mount/reload
     const syncGameState = async () => {

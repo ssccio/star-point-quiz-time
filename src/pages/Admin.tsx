@@ -28,6 +28,8 @@ interface TeamData {
   connected: number;
   names: string[];
   scores: number;
+  queuedCount?: number;
+  queuedNames?: string[];
 }
 
 interface AdminState {
@@ -206,11 +208,16 @@ const Admin = () => {
 
     teams.forEach((team) => {
       const teamPlayers = players.filter((p) => p.team === team);
+      const activePlayers = teamPlayers.filter((p) => p.is_active !== false);
+      const queuedPlayers = teamPlayers.filter((p) => p.is_active === false);
+      
       teamData[team] = {
-        count: teamPlayers.length,
-        connected: teamPlayers.length, // All loaded players are considered connected
-        names: teamPlayers.map((p) => p.name),
-        scores: teamPlayers.reduce((sum, p) => sum + (p.score || 0), 0),
+        count: activePlayers.length,
+        connected: activePlayers.length, // All loaded active players are considered connected
+        names: activePlayers.map((p) => p.name),
+        scores: activePlayers.reduce((sum, p) => sum + (p.score || 0), 0),
+        queuedCount: queuedPlayers.length,
+        queuedNames: queuedPlayers.map((p) => p.name),
       };
     });
 

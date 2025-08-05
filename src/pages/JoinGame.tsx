@@ -65,20 +65,15 @@ const JoinGame = () => {
 
     setIsJoining(true);
     try {
-      const { game, player } = await gameService.joinGame(
+      const { game, player, isQueued } = await gameService.joinGame(
         gameCode,
         playerName.trim(),
         preAssignedTeam || undefined
       );
 
       const teamName = TEAMS[player.team as keyof typeof TEAMS].name;
-      if (preAssignedTeam) {
-        toast.success(`Welcome to Team ${teamName}!`);
-      } else {
-        toast.success(`Welcome! You've been assigned to Team ${teamName}`);
-      }
-
-      // Store game data for lobby
+      
+      // Store game data
       localStorage.setItem(
         "gameData",
         JSON.stringify({
@@ -88,10 +83,28 @@ const JoinGame = () => {
           team: player.team,
           isHost: false,
           gameCode: gameCode,
+          isQueued: isQueued || false,
         })
       );
 
-      navigate("/lobby");
+      if (isQueued) {
+        toast.success(`You're queued for Team ${teamName}! You'll join after the current game ends.`);
+        navigate("/queue", {
+          state: {
+            playerName: player.name,
+            team: player.team,
+            gameId: game.id,
+            gameCode: gameCode,
+          }
+        });
+      } else {
+        if (preAssignedTeam) {
+          toast.success(`Welcome to Team ${teamName}!`);
+        } else {
+          toast.success(`Welcome! You've been assigned to Team ${teamName}`);
+        }
+        navigate("/lobby");
+      }
     } catch (error) {
       console.error("Error joining game:", error);
       toast.error("Failed to join game. It may be full or already started.");

@@ -145,29 +145,40 @@ export const gameService = {
     gameCode: string,
     playerName: string,
     assignedTeam?: string
-  ): Promise<{ game: Game; player: Player }> {
+  ): Promise<{ game: Game; player: Player; isQueued?: boolean }> {
     const client = ensureSupabaseConfigured();
 
-    // Find game by code
+    // Find game by code (allow any status, not just "waiting")
     const { data: game, error: gameError } = await client
       .from("games")
       .select()
       .eq("game_code", gameCode)
-      .eq("status", "waiting")
       .single();
 
     if (gameError || !game) {
       throw new GameServiceError(
-        "Game not found or already started",
+        "Game not found",
         "GAME_NOT_FOUND",
         404
+      );
+    }
+
+    // Check if game has finished
+    if (game.status === "finished") {
+      throw new GameServiceError(
+        "Game has finished",
+        "GAME_FINISHED",
+        410
       );
     }
 
     // Use assigned team or auto-assign
     const team = assignedTeam || (await getNextAvailableTeam(game.id));
 
-    // Create player
+    // Determine if player should be queued (game is active/paused, not waiting)
+    const isQueued = game.status !== "waiting";
+
+    // Create player with appropriate status
     const { data: player, error: playerError } = await client
       .from("players")
       .insert({
@@ -175,6 +186,7 @@ export const gameService = {
         name: playerName,
         team: team as "adah" | "ruth" | "esther" | "martha" | "electa",
         is_host: false,
+        is_active: !isQueued, // Active if joining before game starts, inactive if queued
       })
       .select()
       .single();
@@ -186,7 +198,7 @@ export const gameService = {
       );
     }
 
-    return { game, player };
+    return { game, player, isQueued };
   },
 
   // Get game by code
@@ -642,6 +654,9 @@ export const gameService = {
         error.code
       );
     }
+
+    // Activate any queued players for the next game
+    await this.activateQueuedPlayers(gameId);
   },
 
   // Pause/Resume game (admin only)
@@ -697,5 +712,50 @@ export const gameService = {
         error.code
       );
     }
+  },
+
+  // Activate queued players (when game ends)
+  async activateQueuedPlayers(gameId: string): Promise<void> {
+    if (isDevelopmentMode) {
+      // Mock implementation - activate all inactive players
+      Array.from(mockStore.players.values()).forEach(player => {
+        if (player.game_id === gameId && !player.is_active) {
+          const updatedPlayer = { ...player, is_active: true };
+          mockStore.players.set(player.id, updatedPlayer);
+        }
+      });
+      return;
+    }
+
+    const client = ensureSupabaseConfigured();
+
+    // Activate all inactive players for this game
+    const { error } = await client
+      .from("players")
+      .update({ is_active: true })
+      .eq("game_id", gameId)
+      .eq("is_active", false);
+
+    if (error) {
+      console.error("Failed to activate queued players:", error);
+    }
+  },
+
+  // Get queued players count
+  async getQueuedPlayersCount(gameId: string): Promise<number> {
+    if (isDevelopmentMode) {
+      return Array.from(mockStore.players.values()).filter(
+        player => player.game_id === gameId && !player.is_active
+      ).length;
+    }
+
+    const client = ensureSupabaseConfigured();
+    const { data } = await client
+      .from("players")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("is_active", false);
+
+    return data?.length || 0;
   },
 };
