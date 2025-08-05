@@ -17,7 +17,13 @@ const NewGame = () => {
   const [isJoining, setIsJoining] = useState(false);
 
   // Get player data from previous game or error state
-  const { playerName, team: teamId, finalScores, playerRank, fromError } = location.state || {};
+  const {
+    playerName,
+    team: teamId,
+    finalScores,
+    playerRank,
+    fromError,
+  } = location.state || {};
 
   useEffect(() => {
     // If no player data and not from error, redirect to home
@@ -36,11 +42,16 @@ const NewGame = () => {
           <div className="text-center">
             <div className="mb-4 flex items-center justify-center space-x-2">
               <Users className="h-8 w-8 text-indigo-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Try Another Game</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Try Another Game
+              </h1>
             </div>
             {playerName && (
               <div className="text-xl text-gray-600">
-                Hello, <span className="font-semibold text-indigo-600">{playerName}</span>
+                Hello,{" "}
+                <span className="font-semibold text-indigo-600">
+                  {playerName}
+                </span>
               </div>
             )}
           </div>
@@ -50,7 +61,7 @@ const NewGame = () => {
             <h2 className="mb-4 text-center text-lg font-semibold text-gray-900">
               Enter New Game Code
             </h2>
-            
+
             <div className="space-y-4">
               <div>
                 <Label htmlFor="gameCode">Game Code</Label>
@@ -70,7 +81,9 @@ const NewGame = () => {
               <Button
                 onClick={joinNewGame}
                 className="w-full bg-indigo-600 hover:bg-indigo-700"
-                disabled={isJoining || !gameCode.trim() || gameCode.length !== 3}
+                disabled={
+                  isJoining || !gameCode.trim() || gameCode.length !== 3
+                }
               >
                 {isJoining ? (
                   <>
@@ -126,10 +139,14 @@ const NewGame = () => {
 
   const getRankText = (rank: number) => {
     switch (rank) {
-      case 1: return "1st Place!";
-      case 2: return "2nd Place!";
-      case 3: return "3rd Place!";
-      default: return `${rank}th Place`;
+      case 1:
+        return "1st Place!";
+      case 2:
+        return "2nd Place!";
+      case 3:
+        return "3rd Place!";
+      default:
+        return `${rank}th Place`;
     }
   };
 
@@ -167,7 +184,9 @@ const NewGame = () => {
       );
 
       const newTeamName = TEAMS[player.team as keyof typeof TEAMS].name;
-      toast.success(`Welcome to your new game! You've been assigned to Team ${newTeamName}`);
+      toast.success(
+        `Welcome to your new game! You've been assigned to Team ${newTeamName}`
+      );
 
       // Store new game data
       localStorage.setItem(
@@ -201,7 +220,8 @@ const NewGame = () => {
             <h1 className="text-3xl font-bold text-gray-900">Welcome Back!</h1>
           </div>
           <div className="text-xl text-gray-600">
-            Hello, <span className="font-semibold text-indigo-600">{playerName}</span>
+            Hello,{" "}
+            <span className="font-semibold text-indigo-600">{playerName}</span>
           </div>
         </div>
 

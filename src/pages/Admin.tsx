@@ -1,23 +1,45 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Monitor, AlertTriangle, QrCode, Printer, Plus, Loader2, Crown, Trash2, Calendar, Users, ArrowLeft } from 'lucide-react';
-import { sampleQuestions } from '@/utils/sampleData';
-import { loadDefaultQuestions, loadQuestionsFromYAML, getAvailableQuestionSets } from '@/utils/questionLoader';
-import { APP_CONFIG } from '@/utils/config';
-import { AdminLogin } from '@/components/admin/AdminLogin';
-import { GameControls } from '@/components/admin/GameControls';
-import { GameStatus } from '@/components/admin/GameStatus';
-import { TeamManagement } from '@/components/admin/TeamManagement';
-import { QuestionDisplay } from '@/components/admin/QuestionDisplay';
-import { gameService } from '@/lib/gameService';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-import type { Database } from '@/lib/supabase';
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Monitor,
+  AlertTriangle,
+  QrCode,
+  Printer,
+  Plus,
+  Loader2,
+  Crown,
+  Trash2,
+  Calendar,
+  Users,
+  ArrowLeft,
+} from "lucide-react";
+import { sampleQuestions } from "@/utils/sampleData";
+import {
+  loadDefaultQuestions,
+  loadQuestionsFromYAML,
+  getAvailableQuestionSets,
+} from "@/utils/questionLoader";
+import { APP_CONFIG } from "@/utils/config";
+import { AdminLogin } from "@/components/admin/AdminLogin";
+import { GameControls } from "@/components/admin/GameControls";
+import { GameStatus } from "@/components/admin/GameStatus";
+import { TeamManagement } from "@/components/admin/TeamManagement";
+import { QuestionDisplay } from "@/components/admin/QuestionDisplay";
+import { gameService } from "@/lib/gameService";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import type { Database } from "@/lib/supabase";
 
 type Game = Database["public"]["Tables"]["games"]["Row"];
 type Player = Database["public"]["Tables"]["players"]["Row"];
@@ -50,7 +72,9 @@ const Admin = () => {
   const [isCreatingGame, setIsCreatingGame] = useState(false);
   const [showCreateGame, setShowCreateGame] = useState(true);
   const [totalQuestions, setTotalQuestions] = useState(sampleQuestions.length);
-  const [selectedQuestionSet, setSelectedQuestionSet] = useState('rob-morris-biography');
+  const [selectedQuestionSet, setSelectedQuestionSet] = useState(
+    "rob-morris-biography"
+  );
   const [loadedQuestions, setLoadedQuestions] = useState(sampleQuestions);
   const [adminState, setAdminState] = useState<AdminState>({
     selectedGame: null,
@@ -112,18 +136,20 @@ const Admin = () => {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const { questions } = await loadQuestionsFromYAML(`${selectedQuestionSet}.yaml`);
+        const { questions } = await loadQuestionsFromYAML(
+          `${selectedQuestionSet}.yaml`
+        );
         setTotalQuestions(questions.length);
         setLoadedQuestions(questions);
       } catch (error) {
-        console.warn('Using fallback question count:', error);
+        console.warn("Using fallback question count:", error);
         // Fallback to default questions
         try {
           const { questions } = await loadDefaultQuestions();
           setTotalQuestions(questions.length);
           setLoadedQuestions(questions);
         } catch (fallbackError) {
-          console.warn('Fallback also failed, using sample questions count');
+          console.warn("Fallback also failed, using sample questions count");
           setTotalQuestions(sampleQuestions.length);
           setLoadedQuestions(sampleQuestions);
         }
@@ -210,7 +236,7 @@ const Admin = () => {
       const teamPlayers = players.filter((p) => p.team === team);
       const activePlayers = teamPlayers.filter((p) => p.is_active !== false);
       const queuedPlayers = teamPlayers.filter((p) => p.is_active === false);
-      
+
       teamData[team] = {
         count: activePlayers.length,
         connected: activePlayers.length, // All loaded active players are considered connected
@@ -711,13 +737,15 @@ const Admin = () => {
                             <SelectItem key={set.id} value={set.id}>
                               <div className="flex flex-col">
                                 <span className="font-medium">{set.title}</span>
-                                <span className="text-sm text-gray-500">{set.description}</span>
+                                <span className="text-sm text-gray-500">
+                                  {set.description}
+                                </span>
                               </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="mt-1 text-sm text-gray-500">
                         {totalQuestions} questions available
                       </p>
                     </div>

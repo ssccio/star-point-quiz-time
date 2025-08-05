@@ -5,14 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TEAMS, TEAM_COLORS } from "@/utils/constants";
-import { Users, Star } from "lucide-react";
+import { Users, Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { gameService } from "@/lib/gameService";
 
 const TeamJoin = () => {
   const [searchParams] = useSearchParams();
   const [playerName, setPlayerName] = useState("");
   const [gameCode, setGameCode] = useState("");
   const [step, setStep] = useState<"name" | "code">("name");
+  const [isJoining, setIsJoining] = useState(false);
   const navigate = useNavigate();
 
   const team = searchParams.get("team");
@@ -52,19 +54,84 @@ const TeamJoin = () => {
     setStep("code");
   };
 
-  const handleGameCodeSubmit = () => {
+  const handleGameCodeSubmit = async () => {
     if (!gameCode.trim()) {
       toast.error("Please enter the game code");
       return;
     }
 
-    // Navigate to the regular join flow with pre-filled team and name
-    navigate(`/join/${gameCode.toUpperCase()}/${assignedTeam}`, {
-      state: {
-        playerName: playerName.trim(),
-        fromQRCode: true,
-      },
-    });
+    if (gameCode.length !== 3) {
+      toast.error("Game code must be 3 characters");
+      return;
+    }
+
+    setIsJoining(true);
+    try {
+      // Check if game exists first
+      const game = await gameService.getGame(gameCode.toUpperCase());
+      if (!game) {
+        toast.error("Game not found - it may have been deleted or finished");
+        setIsJoining(false);
+        return;
+      }
+
+      if (game.status !== "waiting") {
+        toast.error(
+          "This game has already started and cannot accept new players"
+        );
+        setIsJoining(false);
+        return;
+      }
+
+      // Join the game directly with pre-assigned team
+      const {
+        game: joinedGame,
+        player,
+        isQueued,
+      } = await gameService.joinGame(
+        gameCode.toUpperCase(),
+        playerName.trim(),
+        assignedTeam || undefined
+      );
+
+      const teamName = TEAMS[player.team as keyof typeof TEAMS].name;
+
+      // Store game data
+      localStorage.setItem(
+        "gameData",
+        JSON.stringify({
+          gameId: joinedGame.id,
+          playerId: player.id,
+          playerName: player.name,
+          team: player.team,
+          isHost: false,
+          gameCode: gameCode.toUpperCase(),
+          isQueued: isQueued || false,
+        })
+      );
+
+      if (isQueued) {
+        toast.success(
+          `You're queued for Team ${teamName}! You'll join after the current game ends.`
+        );
+        navigate("/queue", {
+          state: {
+            playerName: player.name,
+            team: player.team,
+            gameId: joinedGame.id,
+            gameCode: gameCode.toUpperCase(),
+          },
+        });
+      } else {
+        toast.success(`Welcome to Team ${teamName}!`);
+        navigate("/lobby");
+      }
+    } catch (error) {
+      console.error("Error joining game:", error);
+      toast.error("Failed to join game. It may be full or already started.");
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   return (
@@ -172,10 +239,21 @@ const TeamJoin = () => {
                 onClick={handleGameCodeSubmit}
                 className="w-full"
                 style={{ backgroundColor: teamColor, borderColor: teamColor }}
-                disabled={!gameCode.trim() || gameCode.length !== 3}
+                disabled={
+                  isJoining || !gameCode.trim() || gameCode.length !== 3
+                }
               >
-                <Users className="mr-2 h-4 w-4" />
-                Join Game
+                {isJoining ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Joining Game...
+                  </>
+                ) : (
+                  <>
+                    <Users className="mr-2 h-4 w-4" />
+                    Join Game
+                  </>
+                )}
               </Button>
 
               <div

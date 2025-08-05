@@ -90,15 +90,20 @@ export const QuestionDisplay = ({
   const correctCount = answers.filter((a) => a.is_correct).length;
 
   // Calculate unanswered players grouped by team
-  const answeredPlayerIds = new Set(answers.map(a => a.player_id));
-  const unansweredPlayers = allPlayers.filter(player => !answeredPlayerIds.has(player.id));
-  const unansweredByTeam = unansweredPlayers.reduce((acc, player) => {
-    if (!acc[player.team]) {
-      acc[player.team] = [];
-    }
-    acc[player.team].push(player);
-    return acc;
-  }, {} as Record<string, Player[]>);
+  const answeredPlayerIds = new Set(answers.map((a) => a.player_id));
+  const unansweredPlayers = allPlayers.filter(
+    (player) => !answeredPlayerIds.has(player.id)
+  );
+  const unansweredByTeam = unansweredPlayers.reduce(
+    (acc, player) => {
+      if (!acc[player.team]) {
+        acc[player.team] = [];
+      }
+      acc[player.team].push(player);
+      return acc;
+    },
+    {} as Record<string, Player[]>
+  );
   return (
     <div className="space-y-4">
       <Card className="p-6">
@@ -253,7 +258,7 @@ export const QuestionDisplay = ({
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {players.map(player => (
+                    {players.map((player) => (
                       <div
                         key={player.id}
                         className="flex items-center space-x-1 rounded-md bg-white px-2 py-1 text-sm"

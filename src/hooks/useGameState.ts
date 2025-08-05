@@ -55,6 +55,62 @@ export const useGameState = (
     version: string;
   } | null>(null);
 
+  // Define syncGameState outside useEffect so it can be exposed
+  const syncGameState = useCallback(async () => {
+    if (isPracticeMode || !gameId) return;
+
+    const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
+    const gameCode = gameData.gameCode;
+
+    if (!gameCode) return;
+    try {
+      const game = await gameService.getGame(gameCode);
+      if (!game) {
+        console.log("Game no longer exists - redirecting to error recovery");
+        navigate("/new-game", {
+          state: {
+            playerName,
+            team: teamId,
+            fromError: true,
+          },
+        });
+        return;
+      }
+
+      if (game.current_question !== currentQuestionIndex + 1) {
+        console.log(
+          "Syncing question from",
+          currentQuestionIndex + 1,
+          "to",
+          game.current_question
+        );
+        setCurrentQuestionIndex((game.current_question || 1) - 1);
+        setPhase("question");
+        setSelectedAnswer(null);
+        setHasSubmitted(false);
+        setTeamMates((prev) =>
+          prev.map((mate) => ({ ...mate, hasAnswered: false }))
+        );
+      }
+    } catch (error) {
+      console.error("Failed to sync game state:", error);
+      navigate("/new-game", {
+        state: {
+          playerName,
+          team: teamId,
+          fromError: true,
+        },
+      });
+    }
+  }, [
+    isPracticeMode,
+    gameId,
+    currentQuestionIndex,
+    navigate,
+    playerName,
+    teamId,
+  ]);
+
   // Practice mode specific state
   const [practiceStats, setPracticeStats] = useState({
     correctAnswers: 0,
@@ -85,7 +141,7 @@ export const useGameState = (
   useEffect(() => {
     if (isPracticeMode || !gameId) return;
 
-    console.log('Setting up game subscription for gameId:', gameId);
+    console.log("Setting up game subscription for gameId:", gameId);
 
     // Get game data from localStorage
     const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
@@ -93,55 +149,15 @@ export const useGameState = (
     const isQueued = gameData.isQueued;
 
     // Initial sync - get current game state on mount/reload
-    const syncGameState = async () => {
-      if (!gameCode) return;
-      try {
-        const game = await gameService.getGame(gameCode);
-        if (!game) {
-          // Game doesn't exist anymore - was likely deleted
-          console.log('Game no longer exists - redirecting to error recovery');
-          navigate("/new-game", {
-            state: {
-              playerName,
-              team: teamId,
-              fromError: true,
-            },
-          });
-          return;
-        }
-        
-        if (game.current_question !== currentQuestionIndex + 1) {
-          console.log('Syncing question from', currentQuestionIndex + 1, 'to', game.current_question);
-          setCurrentQuestionIndex((game.current_question || 1) - 1);
-          setPhase("question");
-          setSelectedAnswer(null);
-          setHasSubmitted(false);
-          // Reset teammates answered status for new question
-          setTeamMates((prev) =>
-            prev.map((mate) => ({ ...mate, hasAnswered: false }))
-          );
-        }
-      } catch (error) {
-        console.error('Failed to sync game state:', error);
-        // If we can't sync the game state, redirect to error recovery
-        navigate("/new-game", {
-          state: {
-            playerName,
-            team: teamId,
-            fromError: true,
-          },
-        });
-      }
-    };
 
     syncGameState();
 
     const subscription = gameService.subscribeToGame(gameId, (updatedGame) => {
-      console.log('Game update received:', updatedGame);
-      
+      console.log("Game update received:", updatedGame);
+
       // Handle game deletion (null/undefined game)
       if (!updatedGame) {
-        console.log('Game was deleted - redirecting to error recovery');
+        console.log("Game was deleted - redirecting to error recovery");
         navigate("/new-game", {
           state: {
             playerName,
@@ -151,13 +167,18 @@ export const useGameState = (
         });
         return;
       }
-      
+
       // Sync current question index with game state
       if (
         updatedGame.current_question &&
         updatedGame.current_question !== currentQuestionIndex + 1
       ) {
-        console.log('Question changed from', currentQuestionIndex + 1, 'to', updatedGame.current_question);
+        console.log(
+          "Question changed from",
+          currentQuestionIndex + 1,
+          "to",
+          updatedGame.current_question
+        );
         setCurrentQuestionIndex(updatedGame.current_question - 1);
         setPhase("question");
         setSelectedAnswer(null);
@@ -295,10 +316,15 @@ export const useGameState = (
         }, 1000);
       } catch (error) {
         console.error("Failed to submit answer:", error);
-        
+
         // Check if this is because the game was deleted
-        if (error instanceof Error && error.message.includes('Game not found')) {
-          console.log('Game was deleted during answer submission - redirecting to error recovery');
+        if (
+          error instanceof Error &&
+          error.message.includes("Game not found")
+        ) {
+          console.log(
+            "Game was deleted during answer submission - redirecting to error recovery"
+          );
           navigate("/new-game", {
             state: {
               playerName,
@@ -308,7 +334,7 @@ export const useGameState = (
           });
           return;
         }
-        
+
         // Still show answer phase even if submission failed
         setTimeout(() => {
           setPhase("answer-reveal");
@@ -395,5 +421,6 @@ export const useGameState = (
     handleSubmitAnswer,
     handleNextQuestion,
     handleTimeUp,
+    syncGameState,
   };
 };

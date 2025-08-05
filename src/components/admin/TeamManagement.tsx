@@ -92,7 +92,9 @@ export const TeamManagement = ({
                       </Badge>
                     ))}
                     {teamData.names.length === 0 && (
-                      <span className="text-xs text-gray-400">No active players</span>
+                      <span className="text-xs text-gray-400">
+                        No active players
+                      </span>
                     )}
                   </div>
                 </div>
@@ -108,7 +110,7 @@ export const TeamManagement = ({
                         <Badge
                           key={`queued-${index}`}
                           variant="secondary"
-                          className="text-xs bg-orange-100 text-orange-800 border-orange-300"
+                          className="border-orange-300 bg-orange-100 text-xs text-orange-800"
                         >
                           {name}
                         </Badge>
@@ -118,29 +120,28 @@ export const TeamManagement = ({
                 )}
               </div>
 
-                <div className="flex space-x-2">
-                  <Button
-                    size="sm"
-                    onClick={() => onAdjustScore(teamId, 10)}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    +10
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => onAdjustScore(teamId, -10)}
-                    variant="destructive"
-                  >
-                    -10
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => onAdjustScore(teamId, 20)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    +20 Bonus
-                  </Button>
-                </div>
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  onClick={() => onAdjustScore(teamId, 10)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  +10
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => onAdjustScore(teamId, -10)}
+                  variant="destructive"
+                >
+                  -10
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => onAdjustScore(teamId, 20)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  +20 Bonus
+                </Button>
               </div>
             </Card>
           );

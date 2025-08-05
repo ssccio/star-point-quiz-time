@@ -42,7 +42,9 @@ const JoinGame = () => {
       if (!game) {
         toast.error("Game not found - it may have been deleted or finished");
       } else if (game.status !== "waiting") {
-        toast.error("This game has already started and cannot accept new players");
+        toast.error(
+          "This game has already started and cannot accept new players"
+        );
         setGameExists(false);
       }
     } catch (error) {
@@ -72,7 +74,7 @@ const JoinGame = () => {
       );
 
       const teamName = TEAMS[player.team as keyof typeof TEAMS].name;
-      
+
       // Store game data
       localStorage.setItem(
         "gameData",
@@ -88,14 +90,16 @@ const JoinGame = () => {
       );
 
       if (isQueued) {
-        toast.success(`You're queued for Team ${teamName}! You'll join after the current game ends.`);
+        toast.success(
+          `You're queued for Team ${teamName}! You'll join after the current game ends.`
+        );
         navigate("/queue", {
           state: {
             playerName: player.name,
             team: player.team,
             gameId: game.id,
             gameCode: gameCode,
-          }
+          },
         });
       } else {
         if (preAssignedTeam) {
@@ -132,19 +136,24 @@ const JoinGame = () => {
         <Card className="w-full max-w-md p-8 text-center">
           <div className="space-y-4">
             <div className="text-6xl text-red-600">⚠️</div>
-            <h1 className="text-2xl font-bold text-gray-900">Game Not Available</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Game Not Available
+            </h1>
             <p className="text-gray-600">
-              The game code <strong>{gameCode}</strong> is no longer available. It may have been deleted, finished, or already started.
+              The game code <strong>{gameCode}</strong> is no longer available.
+              It may have been deleted, finished, or already started.
             </p>
             <div className="space-y-3">
               <Button
-                onClick={() => navigate("/new-game", {
-                  state: {
-                    playerName: playerName || passedName,
-                    team: preAssignedTeam,
-                    fromError: true
-                  }
-                })}
+                onClick={() =>
+                  navigate("/new-game", {
+                    state: {
+                      playerName: playerName || passedName,
+                      team: preAssignedTeam,
+                      fromError: true,
+                    },
+                  })
+                }
                 className="w-full bg-indigo-600 hover:bg-indigo-700"
               >
                 Enter New Game Code

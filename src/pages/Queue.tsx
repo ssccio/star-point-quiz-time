@@ -95,7 +95,8 @@ const Queue = () => {
             <h1 className="text-3xl font-bold text-gray-900">You're Queued!</h1>
           </div>
           <div className="text-xl text-gray-600">
-            Hello, <span className="font-semibold text-indigo-600">{playerName}</span>
+            Hello,{" "}
+            <span className="font-semibold text-indigo-600">{playerName}</span>
           </div>
         </div>
 
@@ -104,7 +105,7 @@ const Queue = () => {
           <h2 className="mb-4 text-center text-lg font-semibold text-gray-900">
             Your Team Assignment
           </h2>
-          
+
           <div className="text-center">
             <div
               className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-lg"
@@ -127,13 +128,15 @@ const Queue = () => {
           <h2 className="mb-4 text-center text-lg font-semibold text-gray-900">
             Current Game Status
           </h2>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-center space-x-2">
               {getStatusIcon()}
-              <span className="font-medium text-gray-900">{getStatusMessage()}</span>
+              <span className="font-medium text-gray-900">
+                {getStatusMessage()}
+              </span>
             </div>
-            
+
             {gameStatus === "active" && (
               <div className="text-center">
                 <div className="text-sm text-gray-600">Currently on</div>
@@ -159,7 +162,7 @@ const Queue = () => {
           <h2 className="mb-4 text-center text-lg font-semibold text-gray-900">
             Queue Information
           </h2>
-          
+
           <div className="space-y-3">
             {queuedCount > 1 && (
               <div className="flex items-center justify-center space-x-2">
@@ -169,7 +172,7 @@ const Queue = () => {
                 </span>
               </div>
             )}
-            
+
             <div className="rounded-lg bg-blue-50 p-4">
               <h3 className="mb-2 font-semibold text-blue-900">
                 What happens next?
@@ -188,18 +191,20 @@ const Queue = () => {
         <div className="space-y-3">
           <Button
             variant="outline"
-            onClick={() => navigate("/new-game", {
-              state: {
-                playerName,
-                team: teamId,
-                fromError: true
-              }
-            })}
+            onClick={() =>
+              navigate("/new-game", {
+                state: {
+                  playerName,
+                  team: teamId,
+                  fromError: true,
+                },
+              })
+            }
             className="w-full"
           >
             Join Different Game Instead
           </Button>
-          
+
           <Button
             variant="ghost"
             onClick={() => navigate("/")}

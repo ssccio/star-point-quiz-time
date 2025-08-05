@@ -156,20 +156,26 @@ export const gameService = {
       .single();
 
     if (gameError || !game) {
-      throw new GameServiceError(
-        "Game not found",
-        "GAME_NOT_FOUND",
-        404
-      );
+      throw new GameServiceError("Game not found", "GAME_NOT_FOUND", 404);
     }
 
     // Check if game has finished
     if (game.status === "finished") {
-      throw new GameServiceError(
-        "Game has finished",
-        "GAME_FINISHED",
-        410
-      );
+      throw new GameServiceError("Game has finished", "GAME_FINISHED", 410);
+    }
+
+    // Check if player already exists for this game (prevent duplicates)
+    const { data: existingPlayer } = await client
+      .from("players")
+      .select()
+      .eq("game_id", game.id)
+      .eq("name", playerName)
+      .single();
+
+    if (existingPlayer) {
+      // Player already exists, return existing player
+      const isQueued = game.status !== "waiting" && !existingPlayer.is_active;
+      return { game, player: existingPlayer, isQueued };
     }
 
     // Use assigned team or auto-assign
@@ -178,7 +184,7 @@ export const gameService = {
     // Determine if player should be queued (game is active/paused, not waiting)
     const isQueued = game.status !== "waiting";
 
-    // Create player with appropriate status
+    // Create new player with appropriate status
     const { data: player, error: playerError } = await client
       .from("players")
       .insert({
@@ -349,7 +355,9 @@ export const gameService = {
 
       if (player) {
         const newScore = (player.score || 0) + 20;
-        console.log(`Updating player ${playerId} score from ${player.score} to ${newScore}`);
+        console.log(
+          `Updating player ${playerId} score from ${player.score} to ${newScore}`
+        );
 
         const { error: scoreError } = await client
           .from("players")
@@ -357,7 +365,7 @@ export const gameService = {
           .eq("id", playerId);
 
         if (scoreError) {
-          console.error('Score update error:', scoreError);
+          console.error("Score update error:", scoreError);
           throw scoreError;
         }
       }
@@ -500,11 +508,15 @@ export const gameService = {
 
     const client = ensureSupabaseConfigured();
 
-    console.log('GameService: Querying answers for:', { gameId, questionNumber });
+    console.log("GameService: Querying answers for:", {
+      gameId,
+      questionNumber,
+    });
 
     const { data, error } = await client
-      .from('answers')
-      .select(`
+      .from("answers")
+      .select(
+        `
         player_id,
         answer,
         is_correct,
@@ -514,26 +526,33 @@ export const gameService = {
           name,
           team
         )
-      `)
+      `
+      )
       .eq("game_id", gameId)
       .eq("question_id", questionNumber)
       .order("submitted_at");
 
-    console.log('GameService: Query result:', { data, error, queryParams: { gameId, questionNumber } });
+    console.log("GameService: Query result:", {
+      data,
+      error,
+      queryParams: { gameId, questionNumber },
+    });
 
     if (error) {
-      console.error('GameService: Query error:', error);
+      console.error("GameService: Query error:", error);
       return [];
     }
 
-    return data?.map(answer => ({
-      player_id: answer.player_id,
-      player_name: answer.players.name,
-      team: answer.players.team,
-      answer: answer.answer,
-      is_correct: answer.is_correct,
-      answered_at: answer.submitted_at
-    })) || []
+    return (
+      data?.map((answer) => ({
+        player_id: answer.player_id,
+        player_name: answer.players.name,
+        team: answer.players.team,
+        answer: answer.answer,
+        is_correct: answer.is_correct,
+        answered_at: answer.submitted_at,
+      })) || []
+    );
   },
 
   // Subscribe to answer updates for admin
@@ -552,7 +571,12 @@ export const gameService = {
     }
 
     const client = ensureSupabaseConfigured();
-    console.log("Setting up REAL answer subscription for gameId:", gameId, "question:", questionNumber);
+    console.log(
+      "Setting up REAL answer subscription for gameId:",
+      gameId,
+      "question:",
+      questionNumber
+    );
     return client
       .channel(`answers:${gameId}:${questionNumber}`)
       .on(
@@ -613,7 +637,12 @@ export const gameService = {
     }
 
     const nextQuestionNumber = (game.current_question || 0) + 1;
-    console.log("📈 Advancing question from", game.current_question, "to", nextQuestionNumber);
+    console.log(
+      "📈 Advancing question from",
+      game.current_question,
+      "to",
+      nextQuestionNumber
+    );
 
     const { error } = await client
       .from("games")
@@ -718,7 +747,7 @@ export const gameService = {
   async activateQueuedPlayers(gameId: string): Promise<void> {
     if (isDevelopmentMode) {
       // Mock implementation - activate all inactive players
-      Array.from(mockStore.players.values()).forEach(player => {
+      Array.from(mockStore.players.values()).forEach((player) => {
         if (player.game_id === gameId && !player.is_active) {
           const updatedPlayer = { ...player, is_active: true };
           mockStore.players.set(player.id, updatedPlayer);
@@ -745,7 +774,7 @@ export const gameService = {
   async getQueuedPlayersCount(gameId: string): Promise<number> {
     if (isDevelopmentMode) {
       return Array.from(mockStore.players.values()).filter(
-        player => player.game_id === gameId && !player.is_active
+        (player) => player.game_id === gameId && !player.is_active
       ).length;
     }
 

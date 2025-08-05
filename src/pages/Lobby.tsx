@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ const Lobby = () => {
   const [game, setGame] = useState<Game | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActiveRef = useRef<number>(Date.now());
 
   // Get game data from localStorage
   const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
@@ -32,12 +34,55 @@ const Lobby = () => {
     loadGameData();
     const subscriptions = setupRealTimeSubscriptions();
 
+    // Add visibility change handler to detect app backgrounding/lock screen
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // App came back to foreground - check if we missed anything
+        lastActiveRef.current = Date.now();
+        console.log("App became visible - checking for missed updates");
+
+        // Clear any pending reconnect attempts
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = null;
+        }
+
+        // Refresh game state to catch any missed updates
+        loadGameData();
+      } else {
+        // App went to background - start monitoring for reconnection
+        console.log("App went to background");
+        scheduleReconnectCheck();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       // Cleanup subscriptions
       subscriptions.playersSubscription?.unsubscribe();
       subscriptions.gameSubscription?.unsubscribe();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
     };
   }, [gameData.gameId, gameData.playerId, navigate]);
+
+  const scheduleReconnectCheck = () => {
+    // Schedule a check after 5 seconds to see if we need to refresh
+    reconnectTimeoutRef.current = setTimeout(async () => {
+      if (document.visibilityState === "visible") {
+        // If we're back in foreground, refresh game state
+        console.log("Reconnect check: refreshing game state");
+        await loadGameData();
+      } else {
+        // Still in background, schedule another check
+        scheduleReconnectCheck();
+      }
+    }, 5000);
+  };
 
   const loadGameData = async () => {
     try {

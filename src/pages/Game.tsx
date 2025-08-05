@@ -52,7 +52,22 @@ const Game = () => {
       navigate("/");
       return;
     }
-  }, [playerName, teamId, navigate]);
+
+    // Add visibility change handler for mobile resilience
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && !isPracticeMode) {
+        console.log("Game page became visible - syncing state");
+        // When returning from background, sync game state to catch missed updates
+        gameState.syncGameState?.();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [playerName, teamId, navigate, isPracticeMode, gameState]);
 
   useEffect(() => {
     if (gameState.phase === "question") {

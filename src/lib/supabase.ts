@@ -57,6 +57,7 @@ export interface Database {
           team: "adah" | "ruth" | "esther" | "martha" | "electa";
           score: number;
           is_host: boolean;
+          is_active: boolean;
           joined_at: string;
         };
         Insert: {
@@ -66,6 +67,7 @@ export interface Database {
           team: "adah" | "ruth" | "esther" | "martha" | "electa";
           score?: number;
           is_host?: boolean;
+          is_active?: boolean;
           joined_at?: string;
         };
         Update: {
@@ -75,6 +77,7 @@ export interface Database {
           team?: "adah" | "ruth" | "esther" | "martha" | "electa";
           score?: number;
           is_host?: boolean;
+          is_active?: boolean;
           joined_at?: string;
         };
       };
