@@ -96,7 +96,20 @@ export const useGameState = (
       if (!gameCode) return;
       try {
         const game = await gameService.getGame(gameCode);
-        if (game && game.current_question !== currentQuestionIndex + 1) {
+        if (!game) {
+          // Game doesn't exist anymore - was likely deleted
+          console.log('Game no longer exists - redirecting to error recovery');
+          navigate("/new-game", {
+            state: {
+              playerName,
+              team: teamId,
+              fromError: true,
+            },
+          });
+          return;
+        }
+        
+        if (game.current_question !== currentQuestionIndex + 1) {
           console.log('Syncing question from', currentQuestionIndex + 1, 'to', game.current_question);
           setCurrentQuestionIndex((game.current_question || 1) - 1);
           setPhase("question");
@@ -109,6 +122,14 @@ export const useGameState = (
         }
       } catch (error) {
         console.error('Failed to sync game state:', error);
+        // If we can't sync the game state, redirect to error recovery
+        navigate("/new-game", {
+          state: {
+            playerName,
+            team: teamId,
+            fromError: true,
+          },
+        });
       }
     };
 
@@ -116,6 +137,20 @@ export const useGameState = (
 
     const subscription = gameService.subscribeToGame(gameId, (updatedGame) => {
       console.log('Game update received:', updatedGame);
+      
+      // Handle game deletion (null/undefined game)
+      if (!updatedGame) {
+        console.log('Game was deleted - redirecting to error recovery');
+        navigate("/new-game", {
+          state: {
+            playerName,
+            team: teamId,
+            fromError: true,
+          },
+        });
+        return;
+      }
+      
       // Sync current question index with game state
       if (
         updatedGame.current_question &&
@@ -259,6 +294,20 @@ export const useGameState = (
         }, 1000);
       } catch (error) {
         console.error("Failed to submit answer:", error);
+        
+        // Check if this is because the game was deleted
+        if (error instanceof Error && error.message.includes('Game not found')) {
+          console.log('Game was deleted during answer submission - redirecting to error recovery');
+          navigate("/new-game", {
+            state: {
+              playerName,
+              team: teamId,
+              fromError: true,
+            },
+          });
+          return;
+        }
+        
         // Still show answer phase even if submission failed
         setTimeout(() => {
           setPhase("answer-reveal");

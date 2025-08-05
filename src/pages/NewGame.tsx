@@ -16,16 +16,91 @@ const NewGame = () => {
   const [gameCode, setGameCode] = useState("");
   const [isJoining, setIsJoining] = useState(false);
 
-  // Get player data from previous game
-  const { playerName, team: teamId, finalScores, playerRank } = location.state || {};
+  // Get player data from previous game or error state
+  const { playerName, team: teamId, finalScores, playerRank, fromError } = location.state || {};
 
   useEffect(() => {
-    // If no player data, redirect to home
-    if (!playerName || !teamId) {
+    // If no player data and not from error, redirect to home
+    if (!playerName && !fromError) {
       navigate("/");
       return;
     }
-  }, [playerName, teamId, navigate]);
+  }, [playerName, fromError, navigate]);
+
+  // Handle error state (came from failed game join)
+  if (fromError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+        <div className="mx-auto max-w-md space-y-6 py-8">
+          {/* Error Recovery Header */}
+          <div className="text-center">
+            <div className="mb-4 flex items-center justify-center space-x-2">
+              <Users className="h-8 w-8 text-indigo-600" />
+              <h1 className="text-3xl font-bold text-gray-900">Try Another Game</h1>
+            </div>
+            {playerName && (
+              <div className="text-xl text-gray-600">
+                Hello, <span className="font-semibold text-indigo-600">{playerName}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Join New Game */}
+          <Card className="p-6">
+            <h2 className="mb-4 text-center text-lg font-semibold text-gray-900">
+              Enter New Game Code
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="gameCode">Game Code</Label>
+                <Input
+                  id="gameCode"
+                  value={gameCode}
+                  onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                  placeholder="Enter 3-letter code (e.g., XYZ)"
+                  maxLength={3}
+                  className="text-center text-2xl font-bold tracking-widest"
+                  onKeyDown={(e) => e.key === "Enter" && joinNewGame()}
+                  autoFocus
+                  disabled={isJoining}
+                />
+              </div>
+
+              <Button
+                onClick={joinNewGame}
+                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                disabled={isJoining || !gameCode.trim() || gameCode.length !== 3}
+              >
+                {isJoining ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Joining Game...
+                  </>
+                ) : (
+                  <>
+                    <Users className="mr-2 h-4 w-4" />
+                    Join Game
+                  </>
+                )}
+              </Button>
+            </div>
+          </Card>
+
+          {/* Alternative Actions */}
+          <div className="space-y-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/")}
+              className="w-full"
+            >
+              Return to Main Menu
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!playerName || !teamId || !finalScores) {
     navigate("/");
