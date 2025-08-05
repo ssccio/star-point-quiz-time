@@ -1,13 +1,19 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Crown, Star } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Users, Star, GamepadIcon, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { gameService } from "@/lib/gameService";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const teamParam = searchParams.get("team");
+  const [gameCode, setGameCode] = useState("");
+  const [isJoining, setIsJoining] = useState(false);
 
   // If team parameter is provided, go directly to practice game
   useEffect(() => {
@@ -15,6 +21,37 @@ const Index = () => {
       navigate(`/game?mode=practice&team=${teamParam}`);
     }
   }, [teamParam, navigate]);
+
+  const handleJoinGame = async () => {
+    if (!gameCode.trim()) {
+      toast.error("Please enter a game code");
+      return;
+    }
+
+    if (gameCode.length !== 3) {
+      toast.error("Game code must be 3 characters");
+      return;
+    }
+
+    setIsJoining(true);
+    try {
+      // Check if game exists first
+      const game = await gameService.getGame(gameCode.toUpperCase());
+      if (!game) {
+        toast.error("Game not found - please check the code");
+        setIsJoining(false);
+        return;
+      }
+
+      // Navigate to the join game page
+      navigate(`/join/${gameCode.toUpperCase()}`);
+    } catch (error) {
+      console.error("Error checking game:", error);
+      toast.error("Error finding game - please try again");
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
@@ -32,23 +69,45 @@ const Index = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Host Multiplayer Game */}
-          <Card
-            className="cursor-pointer p-8 text-center transition-shadow hover:shadow-lg"
-            onClick={() => navigate("/host")}
-          >
+          {/* Join Multiplayer Game - Primary Action */}
+          <Card className="p-8 text-center transition-shadow hover:shadow-lg">
             <div className="space-y-4">
               <div className="flex justify-center">
-                <Crown className="h-16 w-16 text-indigo-600" />
+                <GamepadIcon className="h-16 w-16 text-indigo-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Host a Game</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Join Game</h2>
               <p className="text-gray-600">
-                Create a multiplayer quiz session for your Eastern Star meeting.
-                Generate a QR code for others to join.
+                Enter your game code to join an Eastern Star quiz session with your friends.
               </p>
-              <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
-                Host Game
-              </Button>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="gameCode">Game Code</Label>
+                  <Input
+                    id="gameCode"
+                    value={gameCode}
+                    onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                    placeholder="Enter 3-letter code (e.g., ABC)"
+                    maxLength={3}
+                    className="text-center text-2xl font-bold tracking-widest"
+                    onKeyDown={(e) => e.key === "Enter" && handleJoinGame()}
+                    disabled={isJoining}
+                  />
+                </div>
+                <Button 
+                  onClick={handleJoinGame}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                  disabled={isJoining || !gameCode.trim() || gameCode.length !== 3}
+                >
+                  {isJoining ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Joining Game...
+                    </>
+                  ) : (
+                    "Join Game"
+                  )}
+                </Button>
+              </div>
             </div>
           </Card>
 
@@ -73,6 +132,18 @@ const Index = () => {
               </Button>
             </div>
           </Card>
+        </div>
+
+        {/* Admin Link - Small and Unobtrusive */}
+        <div className="text-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/admin")}
+            className="text-xs text-gray-400 hover:text-gray-600"
+          >
+            Admin Panel
+          </Button>
         </div>
 
         <div className="text-center">
