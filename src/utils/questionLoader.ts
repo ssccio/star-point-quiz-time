@@ -1,5 +1,15 @@
 import * as yaml from "js-yaml";
 
+// Fisher-Yates shuffle algorithm for randomizing array order
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export interface QuestionSet {
   metadata: {
     title: string;
@@ -21,18 +31,58 @@ export interface Question {
 }
 
 // Convert YAML question format to the existing TypeScript format
-function convertToLegacyFormat(questions: Question[]) {
-  return questions.map((q) => ({
-    id: q.id,
-    text: q.text,
-    options: q.options,
-    correctAnswer: q.correct_answer, // Convert snake_case to camelCase
-    explanation: q.explanation,
-  }));
+function convertToLegacyFormat(questions: Question[], randomizeAnswers = true) {
+  return questions.map((q) => {
+    if (!randomizeAnswers) {
+      return {
+        id: q.id,
+        text: q.text,
+        options: q.options,
+        correctAnswer: q.correct_answer, // Convert snake_case to camelCase
+        explanation: q.explanation,
+      };
+    }
+
+    // Find the index of the correct answer before shuffling
+    const correctIndex = q.options.indexOf(q.correct_answer);
+    if (correctIndex === -1) {
+      console.warn(
+        `Correct answer "${q.correct_answer}" not found in options for question ${q.id}`
+      );
+      // If correct answer not found, don't shuffle
+      return {
+        id: q.id,
+        text: q.text,
+        options: q.options,
+        correctAnswer: q.correct_answer,
+        explanation: q.explanation,
+      };
+    }
+
+    // Shuffle the options array
+    const shuffledOptions = shuffleArray(q.options);
+
+    // Find where the correct answer ended up after shuffling
+    const newCorrectAnswer =
+      shuffledOptions.find((option) => option === q.correct_answer) ||
+      q.correct_answer;
+
+    return {
+      id: q.id,
+      text: q.text,
+      options: shuffledOptions,
+      correctAnswer: newCorrectAnswer, // This should be the same value, just in a new position
+      explanation: q.explanation,
+    };
+  });
 }
 
 // Load questions from YAML file
-export async function loadQuestionsFromYAML(filename: string) {
+export async function loadQuestionsFromYAML(
+  filename: string,
+  randomizeQuestions = true,
+  randomizeAnswers = true
+) {
   try {
     // In development, we'll load from the public directory
     // In production, questions should be bundled with the app
@@ -48,9 +98,16 @@ export async function loadQuestionsFromYAML(filename: string) {
       throw new Error("Invalid question file format");
     }
 
+    const convertedQuestions = convertToLegacyFormat(
+      questionSet.questions,
+      randomizeAnswers
+    );
+
     return {
       metadata: questionSet.metadata,
-      questions: convertToLegacyFormat(questionSet.questions),
+      questions: randomizeQuestions
+        ? shuffleArray(convertedQuestions)
+        : convertedQuestions,
     };
   } catch (error) {
     console.error("Error loading questions from YAML:", error);
@@ -88,9 +145,16 @@ export function getAvailableQuestionSets(): {
 }
 
 // Load the default question set (Rob Morris Biography)
-export async function loadDefaultQuestions() {
+export async function loadDefaultQuestions(
+  randomizeQuestions = true,
+  randomizeAnswers = true
+) {
   try {
-    return await loadQuestionsFromYAML("rob-morris-biography.yaml");
+    return await loadQuestionsFromYAML(
+      "rob-morris-biography.yaml",
+      randomizeQuestions,
+      randomizeAnswers
+    );
   } catch (error) {
     console.warn(
       "Failed to load YAML questions, falling back to hardcoded questions"
@@ -106,7 +170,9 @@ export async function loadDefaultQuestions() {
         created: "2025-01-01",
         version: "1.0",
       },
-      questions: sampleQuestions,
+      questions: randomizeQuestions
+        ? shuffleArray(sampleQuestions)
+        : sampleQuestions,
     };
   }
 }

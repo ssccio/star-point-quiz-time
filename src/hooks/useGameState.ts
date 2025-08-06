@@ -247,6 +247,7 @@ export const useGameState = (
     playerName,
     teamId,
     scores,
+    syncGameState,
   ]);
 
   // Subscribe to real-time answer updates for teammates (multiplayer only)
@@ -412,13 +413,18 @@ export const useGameState = (
     gameId,
     playerId,
     currentQuestionIndex,
+    navigate,
+    practiceSessionId,
+    teamId,
   ]);
 
   const handleNextQuestion = useCallback(() => {
     // In practice mode, advance questions locally
     if (isPracticeMode) {
       if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex((prev) => prev + 1);
+        // Batch all state updates to prevent multiple timer resets
+        const nextIndex = currentQuestionIndex + 1;
+        setCurrentQuestionIndex(nextIndex);
         setPhase("question");
         setSelectedAnswer(null);
         setHasSubmitted(false);
@@ -455,9 +461,9 @@ export const useGameState = (
     navigate,
     playerName,
     teamId,
-    scores,
     isPracticeMode,
     practiceStats,
+    practiceSessionId,
   ]);
 
   const [timeUp, setTimeUp] = useState(false);

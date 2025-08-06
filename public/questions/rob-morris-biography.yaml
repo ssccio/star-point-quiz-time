@@ -192,16 +192,6 @@ questions:
     explanation: "The General Grand Chapter was formed in 1876, formalizing the Order's structure after Morris's contributions."
 
   - id: "19"
-    text: "What was Rob Morris's primary motivation for creating the Order of the Eastern Star?"
-    options:
-      - "Financial gain"
-      - "To honor his wife"
-      - "To involve women in Masonic ideals"
-      - "To start a new religion"
-    correct_answer: "To involve women in Masonic ideals"
-    explanation: "Morris created the Order to extend Masonic principles to women, particularly relatives of Masons, fostering shared values."
-
-  - id: "20"
     text: "Where did Rob Morris spend his final years before passing away?"
     options:
       - "New York"
