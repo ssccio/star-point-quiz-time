@@ -75,13 +75,12 @@ const TeamJoin = () => {
         return;
       }
 
-      if (game.status !== "waiting") {
-        toast.error(
-          "This game has already started and cannot accept new players"
-        );
+      if (game.status === "finished") {
+        toast.error("This game has already finished");
         setIsJoining(false);
         return;
       }
+      // Allow joining active/paused games - the service will handle reconnection/queuing
 
       // Join the game directly with pre-assigned team
       const {
@@ -123,12 +122,43 @@ const TeamJoin = () => {
           },
         });
       } else {
-        toast.success(`Welcome to Team ${teamName}!`);
-        navigate("/lobby");
+        // Check if this is a reconnection (game is already active) or new join (waiting)
+        if (joinedGame.status === "active" || joinedGame.status === "paused") {
+          toast.success(
+            `Welcome back to Team ${teamName}! Rejoining the game...`
+          );
+          // If game is active, go directly to the game page
+          navigate("/game", {
+            state: {
+              playerName: player.name,
+              team: player.team,
+            },
+          });
+        } else {
+          toast.success(`Welcome to Team ${teamName}!`);
+          navigate("/lobby");
+        }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error joining game:", error);
-      toast.error("Failed to join game. It may be full or already started.");
+
+      // Check if it's a specific game service error
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        error.code === "GAME_FINISHED"
+      ) {
+        toast.error("This game has already finished.");
+      } else if (
+        error instanceof Error &&
+        error.message?.includes("already exists")
+      ) {
+        toast.error(
+          "You're already in this game! Please check your connection."
+        );
+      } else {
+        toast.error("Failed to join game. Please try again.");
+      }
     } finally {
       setIsJoining(false);
     }

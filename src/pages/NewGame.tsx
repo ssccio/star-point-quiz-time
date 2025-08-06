@@ -166,16 +166,17 @@ const NewGame = () => {
       // Check if game exists first
       const game = await gameService.getGame(gameCode.toUpperCase());
       if (!game) {
-        toast.error("Game not found or has already started");
+        toast.error("Game not found");
         setIsJoining(false);
         return;
       }
 
-      if (game.status !== "waiting") {
-        toast.error("This game has already started");
+      if (game.status === "finished") {
+        toast.error("This game has already finished");
         setIsJoining(false);
         return;
       }
+      // Allow joining active/paused games - the service will handle reconnection/queuing
 
       // Join the new game with the same player name, let system assign team
       const { game: joinedGame, player } = await gameService.joinGame(
@@ -184,9 +185,6 @@ const NewGame = () => {
       );
 
       const newTeamName = TEAMS[player.team as keyof typeof TEAMS].name;
-      toast.success(
-        `Welcome to your new game! You've been assigned to Team ${newTeamName}`
-      );
 
       // Store new game data
       localStorage.setItem(
@@ -201,10 +199,44 @@ const NewGame = () => {
         })
       );
 
-      navigate("/lobby");
-    } catch (error) {
+      // Check if this is a reconnection (game is already active) or new join (waiting)
+      if (joinedGame.status === "active" || joinedGame.status === "paused") {
+        toast.success(
+          `Welcome back to Team ${newTeamName}! Rejoining the game...`
+        );
+        // If game is active, go directly to the game page
+        navigate("/game", {
+          state: {
+            playerName: player.name,
+            team: player.team,
+          },
+        });
+      } else {
+        toast.success(
+          `Welcome to your new game! You've been assigned to Team ${newTeamName}`
+        );
+        navigate("/lobby");
+      }
+    } catch (error: unknown) {
       console.error("Error joining game:", error);
-      toast.error("Failed to join game. It may be full or already started.");
+
+      // Check if it's a specific game service error
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        error.code === "GAME_FINISHED"
+      ) {
+        toast.error("This game has already finished.");
+      } else if (
+        error instanceof Error &&
+        error.message?.includes("already exists")
+      ) {
+        toast.error(
+          "You're already in this game! Please check your connection."
+        );
+      } else {
+        toast.error("Failed to join game. Please try again.");
+      }
     } finally {
       setIsJoining(false);
     }

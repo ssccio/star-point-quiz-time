@@ -173,8 +173,14 @@ export const gameService = {
       .single();
 
     if (existingPlayer) {
-      // Player already exists, return existing player
+      // Player already exists, return existing player for reconnection
       const isQueued = game.status !== "waiting" && !existingPlayer.is_active;
+
+      // Provide helpful feedback about reconnection
+      console.log(
+        `Player ${playerName} reconnecting to game ${game.id}. Status: ${game.status}, Queued: ${isQueued}`
+      );
+
       return { game, player: existingPlayer, isQueued };
     }
 
