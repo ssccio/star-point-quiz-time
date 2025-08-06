@@ -26,6 +26,7 @@ interface AnswerRevealProps {
     currentStreak: number;
     bestStreak: number;
   };
+  timeUp?: boolean;
 }
 
 export const AnswerReveal = ({
@@ -38,12 +39,15 @@ export const AnswerReveal = ({
   onNextQuestion,
   isPracticeMode = false,
   practiceStats,
+  timeUp = false,
 }: AnswerRevealProps) => {
   return (
     <div className="space-y-4">
       <Card className="p-6 text-center">
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-900">Time's Up!</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {timeUp ? "Time's Up!" : "Answer Results"}
+          </h2>
 
           {/* Show all answers with correct/incorrect highlighting */}
           <div className="space-y-3">

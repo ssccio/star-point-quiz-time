@@ -7,7 +7,7 @@ const TeamSelection = () => {
   const navigate = useNavigate();
 
   const handleTeamSelect = (teamId: string) => {
-    navigate(`/?team=${teamId}`);
+    navigate(`/practice-setup?team=${teamId}`);
   };
 
   return (

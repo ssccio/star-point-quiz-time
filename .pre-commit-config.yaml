@@ -61,3 +61,11 @@ repos:
         args: ["--config=auto", "--error"]
         exclude: '(node_modules/|\.git/|dist/|build/)'
         files: '\.(js|jsx|ts|tsx)$'
+
+  - repo: local
+    hooks:
+      - id: trivy-scan
+        name: "Trivy SCA/Supply Chain Scan"
+        entry: trivy fs .
+        language: system
+        pass_filenames: false

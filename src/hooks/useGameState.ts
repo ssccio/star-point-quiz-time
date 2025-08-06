@@ -1,9 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { sampleQuestions } from "@/utils/sampleData";
-import { loadDefaultQuestions } from "@/utils/questionLoader";
+import {
+  loadDefaultQuestions,
+  loadQuestionsFromYAML,
+} from "@/utils/questionLoader";
 import { APP_CONFIG } from "@/utils/config";
 import { gameService } from "@/lib/gameService";
+import { practiceService } from "@/lib/practiceService";
 
 export type GamePhase =
   | "question"
@@ -30,7 +34,8 @@ export const useGameState = (
   teamId: string | undefined,
   isPracticeMode = false,
   gameId?: string,
-  playerId?: string
+  playerId?: string,
+  questionSetId?: string
 ) => {
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -118,16 +123,46 @@ export const useGameState = (
     currentStreak: 0,
     bestStreak: 0,
   });
+  const [practiceSessionId, setPracticeSessionId] = useState<string | null>(
+    null
+  );
 
   // Load questions from YAML on mount
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const { questions: yamlQuestions, metadata } =
-          await loadDefaultQuestions();
-        setQuestions(yamlQuestions);
-        setQuestionMetadata(metadata);
-        console.log("Loaded questions from YAML:", metadata.title);
+        let questionsData;
+
+        if (isPracticeMode && questionSetId) {
+          // Load specific question set for practice mode
+          questionsData = await loadQuestionsFromYAML(`${questionSetId}.yaml`);
+          console.log("Loaded practice questions:", questionSetId);
+        } else {
+          // Load default questions for multiplayer
+          questionsData = await loadDefaultQuestions();
+          console.log("Loaded default questions");
+        }
+
+        setQuestions(questionsData.questions);
+        setQuestionMetadata(questionsData.metadata);
+
+        // Start practice session tracking if in practice mode
+        if (
+          isPracticeMode &&
+          playerName &&
+          teamId &&
+          questionSetId &&
+          !practiceSessionId
+        ) {
+          const sessionId = practiceService.startPracticeSession(
+            playerName,
+            teamId,
+            questionSetId,
+            questionsData.metadata.title,
+            questionsData.questions.length
+          );
+          setPracticeSessionId(sessionId);
+        }
       } catch (error) {
         console.warn("Using fallback questions:", error);
         // questions is already initialized with sampleQuestions
@@ -135,7 +170,7 @@ export const useGameState = (
     };
 
     loadQuestions();
-  }, []);
+  }, [isPracticeMode, questionSetId, playerName, teamId, practiceSessionId]);
 
   // Subscribe to game state changes for multiplayer mode
   useEffect(() => {
@@ -278,17 +313,31 @@ export const useGameState = (
     // Track practice stats if in practice mode
     if (isPracticeMode && currentQuestion) {
       const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
-      setPracticeStats((prev) => ({
-        correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0),
-        totalAnswered: prev.totalAnswered + 1,
-        currentStreak: isCorrect ? prev.currentStreak + 1 : 0,
-        bestStreak: isCorrect
-          ? Math.max(prev.bestStreak, prev.currentStreak + 1)
-          : prev.bestStreak,
-      }));
+      setPracticeStats((prev) => {
+        const newStats = {
+          correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0),
+          totalAnswered: prev.totalAnswered + 1,
+          currentStreak: isCorrect ? prev.currentStreak + 1 : 0,
+          bestStreak: isCorrect
+            ? Math.max(prev.bestStreak, prev.currentStreak + 1)
+            : prev.bestStreak,
+        };
+
+        // Update practice session
+        if (practiceSessionId) {
+          practiceService.updatePracticeSession(
+            practiceSessionId,
+            newStats.correctAnswers,
+            false
+          );
+        }
+
+        return newStats;
+      });
 
       // For practice mode, just show results after delay
       setTimeout(() => {
+        setTimeUp(false); // User submitted, not time up
         setPhase("answer-reveal");
       }, 1000);
     } else if (gameId && playerId && currentQuestion) {
@@ -312,6 +361,7 @@ export const useGameState = (
 
         // Show answer phase after brief delay
         setTimeout(() => {
+          setTimeUp(false); // User submitted, not time up
           setPhase("answer-reveal");
         }, 1000);
       } catch (error) {
@@ -337,6 +387,7 @@ export const useGameState = (
 
         // Still show answer phase even if submission failed
         setTimeout(() => {
+          setTimeUp(false); // User submitted, not time up
           setPhase("answer-reveal");
         }, 1000);
       }
@@ -348,6 +399,7 @@ export const useGameState = (
         )
       );
       setTimeout(() => {
+        setTimeUp(false); // User submitted, not time up
         setPhase("answer-reveal");
       }, 1000);
     }
@@ -370,7 +422,17 @@ export const useGameState = (
         setPhase("question");
         setSelectedAnswer(null);
         setHasSubmitted(false);
+        setTimeUp(false);
       } else {
+        // Mark practice session as complete
+        if (practiceSessionId) {
+          practiceService.updatePracticeSession(
+            practiceSessionId,
+            practiceStats.correctAnswers,
+            true
+          );
+        }
+
         navigate("/results", {
           state: {
             playerName,
@@ -398,8 +460,11 @@ export const useGameState = (
     practiceStats,
   ]);
 
+  const [timeUp, setTimeUp] = useState(false);
+
   const handleTimeUp = useCallback(() => {
     if (!hasSubmitted) {
+      setTimeUp(true);
       setPhase("answer-reveal");
     }
   }, [hasSubmitted]);
@@ -417,6 +482,7 @@ export const useGameState = (
     questionMetadata,
     practiceStats,
     isPracticeMode,
+    timeUp,
     handleAnswerSelect,
     handleSubmitAnswer,
     handleNextQuestion,

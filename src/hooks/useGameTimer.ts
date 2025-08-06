@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export const useGameTimer = (
   initialTime: number,
@@ -18,9 +18,12 @@ export const useGameTimer = (
     }
   }, [isActive, timeRemaining, onTimeUp]);
 
-  const resetTimer = (newTime?: number) => {
-    setTimeRemaining(newTime ?? initialTime);
-  };
+  const resetTimer = useCallback(
+    (newTime?: number) => {
+      setTimeRemaining(newTime ?? initialTime);
+    },
+    [initialTime]
+  );
 
   return {
     timeRemaining,

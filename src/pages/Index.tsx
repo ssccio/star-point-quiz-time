@@ -281,8 +281,8 @@ const Index = () => {
                 Practice Mode
               </h2>
               <p className="text-gray-600">
-                Play solo to practice your Eastern Star knowledge. Choose your
-                favorite star point team.
+                Practice your Eastern Star knowledge solo. Perfect for preparing
+                for meeting night trivia!
               </p>
               <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
                 Practice Solo

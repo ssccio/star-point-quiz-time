@@ -16,6 +16,8 @@ import TeamJoin from "./pages/TeamJoin";
 import PrintableQR from "./pages/PrintableQR";
 import NewGame from "./pages/NewGame";
 import Queue from "./pages/Queue";
+import PracticeSetup from "./pages/PracticeSetup";
+import PracticeSignup from "./pages/PracticeSignup";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +57,8 @@ const App = () => (
           <Route path="/join/:gameCode/:team" element={<JoinGame />} />
           <Route path="/new-game" element={<NewGame />} />
           <Route path="/queue" element={<Queue />} />
+          <Route path="/practice-setup" element={<PracticeSetup />} />
+          <Route path="/practice-signup" element={<PracticeSignup />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

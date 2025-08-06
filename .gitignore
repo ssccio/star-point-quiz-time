@@ -25,3 +25,9 @@ dist-ssr
 # Trigger new deployment Mon Jul 14 20:36:58 CDT 2025
 .env
 .env.production
+
+# Testing artifacts
+testing/browser-profiles/
+testing/logs/
+testing/screenshots/
+testing/configs/

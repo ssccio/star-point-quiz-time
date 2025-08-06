@@ -36,6 +36,7 @@ import { GameControls } from "@/components/admin/GameControls";
 import { GameStatus } from "@/components/admin/GameStatus";
 import { TeamManagement } from "@/components/admin/TeamManagement";
 import { QuestionDisplay } from "@/components/admin/QuestionDisplay";
+import { PracticeManagement } from "@/components/admin/PracticeManagement";
 import { gameService } from "@/lib/gameService";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -578,6 +579,11 @@ const Admin = () => {
               <span>Generate All Team QR Codes</span>
             </button>
           </div>
+        </div>
+
+        {/* Practice Management Section */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <PracticeManagement />
         </div>
 
         {/* Game List Management - Show when switching games */}

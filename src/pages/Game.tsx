@@ -24,8 +24,9 @@ const Game = () => {
     ? searchParams.get("team")
     : location.state?.team;
   const playerName = isPracticeMode
-    ? "Practice Player"
+    ? searchParams.get("player") || "Practice Player"
     : location.state?.playerName;
+  const questionSetId = searchParams.get("questionSet");
 
   // Get game context for multiplayer mode
   const gameData = !isPracticeMode
@@ -39,11 +40,15 @@ const Game = () => {
     teamId,
     isPracticeMode,
     gameId,
-    playerId
+    playerId,
+    questionSetId || undefined
   );
+  const isTimerActive =
+    gameState.phase === "question" && !gameState.hasSubmitted;
+
   const { timeRemaining, resetTimer } = useGameTimer(
     30,
-    gameState.phase === "question" && !gameState.hasSubmitted,
+    isTimerActive,
     gameState.handleTimeUp
   );
 
@@ -73,7 +78,7 @@ const Game = () => {
     if (gameState.phase === "question") {
       resetTimer(30);
     }
-  }, [gameState.currentQuestionIndex, gameState.phase, resetTimer]);
+  }, [gameState.currentQuestionIndex, gameState.phase]); // Removed resetTimer from dependencies
 
   const team = TEAMS[teamId as keyof typeof TEAMS];
 
@@ -193,6 +198,7 @@ const Game = () => {
             onNextQuestion={gameState.handleNextQuestion}
             isPracticeMode={isPracticeMode}
             practiceStats={isPracticeMode ? gameState.practiceStats : undefined}
+            timeUp={gameState.timeUp}
           />
         )}
       </div>
