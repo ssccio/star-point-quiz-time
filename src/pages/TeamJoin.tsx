@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,53 @@ const TeamJoin = () => {
   const [gameCode, setGameCode] = useState("");
   const [step, setStep] = useState<"name" | "code">("name");
   const [isJoining, setIsJoining] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
   const navigate = useNavigate();
 
   const team = searchParams.get("team");
   const validTeams = ["adah", "ruth", "esther", "martha", "electa"];
   const assignedTeam = team && validTeams.includes(team) ? team : null;
+
+  // Create a unique storage key for this team's pre-game state
+  const storageKey = assignedTeam ? `teamJoin_${assignedTeam}` : null;
+
+  // Load saved state on mount
+  useEffect(() => {
+    if (storageKey) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const { savedPlayerName, savedStep } = JSON.parse(saved);
+          if (savedPlayerName && savedStep) {
+            setIsResuming(true);
+            setPlayerName(savedPlayerName);
+            setStep(savedStep);
+            // Show resuming message briefly
+            setTimeout(() => setIsResuming(false), 3000);
+            toast.success(
+              `Welcome back, ${savedPlayerName}! Ready for the game code.`
+            );
+          }
+        } catch (error) {
+          console.error("Error loading saved team join state:", error);
+          localStorage.removeItem(storageKey);
+        }
+      }
+    }
+  }, [storageKey]);
+
+  // Save state when it changes
+  useEffect(() => {
+    if (storageKey && playerName && step === "code") {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          savedPlayerName: playerName,
+          savedStep: step,
+        })
+      );
+    }
+  }, [storageKey, playerName, step]);
 
   if (!assignedTeam) {
     return (
@@ -108,6 +150,11 @@ const TeamJoin = () => {
           isQueued: isQueued || false,
         })
       );
+
+      // Clean up the temporary team join state since we've successfully joined a game
+      if (storageKey) {
+        localStorage.removeItem(storageKey);
+      }
 
       if (isQueued) {
         toast.success(
@@ -242,6 +289,15 @@ const TeamJoin = () => {
             </div>
           ) : (
             <div className="space-y-4">
+              {isResuming && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center">
+                  <p className="text-sm text-green-800">
+                    🎉 <strong>Welcome back!</strong> You're ready to enter the
+                    game code.
+                  </p>
+                </div>
+              )}
+
               <div className="text-center">
                 <h2 className="mb-2 text-xl font-semibold text-gray-900">
                   Hello, {playerName}!
