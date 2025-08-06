@@ -200,3 +200,13 @@ questions:
       - "Indiana"
     correct_answer: "Kentucky"
     explanation: "Morris lived in La Grange, Kentucky, during his later years, where he continued his Masonic work until his death in 1888."
+
+  - id: "20"
+    text: "In what year did Rob Morris die?"
+    options:
+      - "1885"
+      - "1888"
+      - "1890"
+      - "1892"
+    correct_answer: "1888"
+    explanation: "Rob Morris died on July 31, 1888, at the age of 69, after a lifetime of contributions to Freemasonry and the Order of the Eastern Star."

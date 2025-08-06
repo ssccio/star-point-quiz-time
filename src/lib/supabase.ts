@@ -24,7 +24,7 @@ export interface Database {
         Row: {
           id: string;
           game_code: string;
-          status: "waiting" | "active" | "finished";
+          status: "waiting" | "active" | "paused" | "finished";
           current_question: number;
           host_id: string;
           created_at: string;
@@ -59,6 +59,7 @@ export interface Database {
           is_host: boolean;
           is_active: boolean;
           joined_at: string;
+          last_active_at: string;
         };
         Insert: {
           id?: string;
@@ -69,6 +70,7 @@ export interface Database {
           is_host?: boolean;
           is_active?: boolean;
           joined_at?: string;
+          last_active_at?: string;
         };
         Update: {
           id?: string;
@@ -79,6 +81,7 @@ export interface Database {
           is_host?: boolean;
           is_active?: boolean;
           joined_at?: string;
+          last_active_at?: string;
         };
       };
       answers: {

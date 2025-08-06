@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Settings, AlertTriangle } from "lucide-react";
+import { Settings, AlertTriangle, ArrowLeft } from "lucide-react";
 
 interface AdminLoginProps {
   onLogin: (password: string) => void;
@@ -51,6 +51,17 @@ export const AdminLogin = ({ onLogin, error }: AdminLoginProps) => {
 
         <div className="text-center text-sm text-gray-500">
           <p>Demo password: admin123</p>
+        </div>
+
+        <div className="text-center">
+          <Button
+            variant="ghost"
+            onClick={() => window.location.href = "/"}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
         </div>
       </Card>
     </div>

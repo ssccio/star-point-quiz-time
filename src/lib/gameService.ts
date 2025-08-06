@@ -44,9 +44,9 @@ const mockStore = {
   gamesByCode: new Map<string, string>(), // gameCode -> gameId mapping
 };
 
-// Generate random 3-character game code
+// Generate random 3-character game code (letters only)
 function generateGameCode(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   let result = "";
   for (let i = 0; i < 3; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -176,12 +176,25 @@ export const gameService = {
       // Player already exists, return existing player for reconnection
       const isQueued = game.status !== "waiting" && !existingPlayer.is_active;
 
+      // Reactivate the player for reconnection
+      await client
+        .from("players")
+        .update({ 
+          is_active: true,
+          last_active_at: new Date().toISOString()
+        })
+        .eq("id", existingPlayer.id);
+
       // Provide helpful feedback about reconnection
       console.log(
         `Player ${playerName} reconnecting to game ${game.id}. Status: ${game.status}, Queued: ${isQueued}`
       );
 
-      return { game, player: existingPlayer, isQueued };
+      return { 
+        game, 
+        player: { ...existingPlayer, is_active: true }, 
+        isQueued 
+      };
     }
 
     // Use assigned team or auto-assign
@@ -190,7 +203,7 @@ export const gameService = {
     // Determine if player should be queued (game is active/paused, not waiting)
     const isQueued = game.status !== "waiting";
 
-    // Create new player with appropriate status
+    // Create new player
     const { data: player, error: playerError } = await client
       .from("players")
       .insert({
@@ -198,7 +211,6 @@ export const gameService = {
         name: playerName,
         team: team as "adah" | "ruth" | "esther" | "martha" | "electa",
         is_host: false,
-        is_active: !isQueued, // Active if joining before game starts, inactive if queued
       })
       .select()
       .single();

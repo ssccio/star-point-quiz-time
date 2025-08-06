@@ -8,6 +8,7 @@ import { TEAMS, TEAM_COLORS } from "@/utils/constants";
 import { Users, Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { gameService } from "@/lib/gameService";
+import { usePhoneLockHandler } from "@/hooks/usePhoneLockHandler";
 
 const TeamJoin = () => {
   const [searchParams] = useSearchParams();
@@ -25,43 +26,103 @@ const TeamJoin = () => {
   // Create a unique storage key for this team's pre-game state
   const storageKey = assignedTeam ? `teamJoin_${assignedTeam}` : null;
 
-  // Load saved state on mount
-  useEffect(() => {
-    if (storageKey) {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
+  // Use comprehensive phone lock handler
+  const { restoreState, clearState, retryOperation } = usePhoneLockHandler({
+    storageKey: storageKey || '',
+    userState: {
+      playerName,
+      step,
+      assignedTeam,
+      gameCode,
+    },
+    onReconnect: async () => {
+      // Handle reconnection after phone unlock
+      console.log('Reconnecting after phone unlock...');
+      
+      // Check for existing game data first
+      const existingGameData = localStorage.getItem("gameData");
+      if (existingGameData) {
         try {
-          const { savedPlayerName, savedStep } = JSON.parse(saved);
-          if (savedPlayerName && savedStep) {
-            setIsResuming(true);
-            setPlayerName(savedPlayerName);
-            setStep(savedStep);
-            // Show resuming message briefly
-            setTimeout(() => setIsResuming(false), 3000);
-            toast.success(
-              `Welcome back, ${savedPlayerName}! Ready for the game code.`
-            );
+          const gameData = JSON.parse(existingGameData);
+          if (gameData.team === assignedTeam) {
+            toast.success(`Welcome back, ${gameData.playerName}! Returning to your game...`);
+            
+            // Verify game still exists with retry logic
+            await retryOperation(async () => {
+              const game = await gameService.getGame(gameData.gameCode);
+              if (game) {
+                if (gameData.isQueued) {
+                  navigate("/queue");
+                } else if (game.status === "active" || game.status === "paused") {
+                  navigate("/game");
+                } else {
+                  navigate("/lobby");
+                }
+              } else {
+                localStorage.removeItem("gameData");
+                throw new Error("Game no longer exists");
+              }
+            });
+            return;
           }
         } catch (error) {
-          console.error("Error loading saved team join state:", error);
-          localStorage.removeItem(storageKey);
+          console.error("Error handling existing game data:", error);
+          localStorage.removeItem("gameData");
         }
       }
-    }
-  }, [storageKey]);
+    },
+    enableToasts: true,
+  });
 
-  // Save state when it changes
+  // Restore state on mount
   useEffect(() => {
-    if (storageKey && playerName && step === "code") {
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          savedPlayerName: playerName,
-          savedStep: step,
-        })
-      );
+    const handleInitialLoad = async () => {
+      // Check for existing game data first
+      const existingGameData = localStorage.getItem("gameData");
+      if (existingGameData) {
+        try {
+          const gameData = JSON.parse(existingGameData);
+          if (gameData.team === assignedTeam) {
+            toast.success(`Welcome back, ${gameData.playerName}! Returning to your game...`);
+            
+            const game = await gameService.getGame(gameData.gameCode);
+            if (game) {
+              if (gameData.isQueued) {
+                navigate("/queue");
+              } else if (game.status === "active" || game.status === "paused") {
+                navigate("/game");
+              } else {
+                navigate("/lobby");
+              }
+              return;
+            } else {
+              localStorage.removeItem("gameData");
+            }
+          }
+        } catch (error) {
+          console.error("Error parsing existing game data:", error);
+          localStorage.removeItem("gameData");
+        }
+      }
+
+      // Restore team join state if no existing game data
+      const savedState = restoreState();
+      if (savedState?.userState) {
+        const { playerName: savedName, step: savedStep } = savedState.userState;
+        if (savedName && savedStep) {
+          setIsResuming(true);
+          setPlayerName(savedName);
+          setStep(savedStep);
+          setTimeout(() => setIsResuming(false), 3000);
+          toast.success(`Welcome back, ${savedName}! Ready for the game code.`);
+        }
+      }
+    };
+
+    if (assignedTeam) {
+      handleInitialLoad().catch(console.error);
     }
-  }, [storageKey, playerName, step]);
+  }, [assignedTeam, navigate, restoreState]);
 
   if (!assignedTeam) {
     return (
@@ -108,101 +169,86 @@ const TeamJoin = () => {
     }
 
     setIsJoining(true);
+    
     try {
-      // Check if game exists first
-      const game = await gameService.getGame(gameCode.toUpperCase());
-      if (!game) {
-        toast.error("Game not found - it may have been deleted or finished");
-        setIsJoining(false);
-        return;
-      }
+      await retryOperation(async () => {
+        // Check if game exists first
+        const game = await gameService.getGame(gameCode.toUpperCase());
+        if (!game) {
+          throw new Error("Game not found - it may have been deleted or finished");
+        }
 
-      if (game.status === "finished") {
-        toast.error("This game has already finished");
-        setIsJoining(false);
-        return;
-      }
-      // Allow joining active/paused games - the service will handle reconnection/queuing
+        if (game.status === "finished") {
+          throw new Error("This game has already finished");
+        }
 
-      // Join the game directly with pre-assigned team
-      const {
-        game: joinedGame,
-        player,
-        isQueued,
-      } = await gameService.joinGame(
-        gameCode.toUpperCase(),
-        playerName.trim(),
-        assignedTeam || undefined
-      );
-
-      const teamName = TEAMS[player.team as keyof typeof TEAMS].name;
-
-      // Store game data
-      localStorage.setItem(
-        "gameData",
-        JSON.stringify({
-          gameId: joinedGame.id,
-          playerId: player.id,
-          playerName: player.name,
-          team: player.team,
-          isHost: false,
-          gameCode: gameCode.toUpperCase(),
-          isQueued: isQueued || false,
-        })
-      );
-
-      // Clean up the temporary team join state since we've successfully joined a game
-      if (storageKey) {
-        localStorage.removeItem(storageKey);
-      }
-
-      if (isQueued) {
-        toast.success(
-          `You're queued for Team ${teamName}! You'll join after the current game ends.`
+        // Join the game directly with pre-assigned team
+        const {
+          game: joinedGame,
+          player,
+          isQueued,
+        } = await gameService.joinGame(
+          gameCode.toUpperCase(),
+          playerName.trim(),
+          assignedTeam || undefined
         );
-        navigate("/queue", {
-          state: {
+
+        const teamName = TEAMS[player.team as keyof typeof TEAMS].name;
+
+        // Store game data
+        localStorage.setItem(
+          "gameData",
+          JSON.stringify({
+            gameId: joinedGame.id,
+            playerId: player.id,
             playerName: player.name,
             team: player.team,
-            gameId: joinedGame.id,
+            isHost: false,
             gameCode: gameCode.toUpperCase(),
-          },
-        });
-      } else {
-        // Check if this is a reconnection (game is already active) or new join (waiting)
-        if (joinedGame.status === "active" || joinedGame.status === "paused") {
+            isQueued: isQueued || false,
+          })
+        );
+
+        // Clean up the temporary team join state since we've successfully joined a game
+        clearState();
+
+        if (isQueued) {
           toast.success(
-            `Welcome back to Team ${teamName}! Rejoining the game...`
+            `You're queued for Team ${teamName}! You'll join after the current game ends.`
           );
-          // If game is active, go directly to the game page
-          navigate("/game", {
+          navigate("/queue", {
             state: {
               playerName: player.name,
               team: player.team,
+              gameId: joinedGame.id,
+              gameCode: gameCode.toUpperCase(),
             },
           });
         } else {
-          toast.success(`Welcome to Team ${teamName}!`);
-          navigate("/lobby");
+          // Check if this is a reconnection (game is already active) or new join (waiting)
+          if (joinedGame.status === "active" || joinedGame.status === "paused") {
+            toast.success(
+              `Welcome back to Team ${teamName}! Rejoining the game...`
+            );
+            // If game is active, go directly to the game page
+            navigate("/game", {
+              state: {
+                playerName: player.name,
+                team: player.team,
+              },
+            });
+          } else {
+            toast.success(`Welcome to Team ${teamName}!`);
+            navigate("/lobby");
+          }
         }
-      }
+      });
     } catch (error: unknown) {
       console.error("Error joining game:", error);
 
-      // Check if it's a specific game service error
-      if (
-        error instanceof Error &&
-        "code" in error &&
-        error.code === "GAME_FINISHED"
-      ) {
-        toast.error("This game has already finished.");
-      } else if (
-        error instanceof Error &&
-        error.message?.includes("already exists")
-      ) {
-        toast.error(
-          "You're already in this game! Please check your connection."
-        );
+      if (error instanceof Error) {
+        // Show the specific error message from the operation
+        toast.error(error.message);
       } else {
         toast.error("Failed to join game. Please try again.");
       }

@@ -7,6 +7,7 @@ import { TEAMS, TEAM_COLORS } from "@/utils/constants";
 import { gameService } from "@/lib/gameService";
 import type { Database } from "@/lib/supabase";
 import { toast } from "sonner";
+import { usePhoneLockHandler } from "@/hooks/usePhoneLockHandler";
 
 type Player = Database["public"]["Tables"]["players"]["Row"];
 type Game = Database["public"]["Tables"]["games"]["Row"];
@@ -22,6 +23,23 @@ const Lobby = () => {
 
   // Get game data from localStorage
   const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
+
+  // Phone lock handler for lobby state
+  const { retryOperation } = usePhoneLockHandler({
+    storageKey: `lobby_${gameData.gameId || 'unknown'}`,
+    userState: {
+      gameData,
+      currentPlayer,
+      game,
+    },
+    onReconnect: async () => {
+      console.log('Lobby reconnecting after phone unlock...');
+      await retryOperation(async () => {
+        await loadGameData();
+      });
+    },
+    enableToasts: true,
+  });
 
   useEffect(() => {
     const { gameId, playerId } = gameData;

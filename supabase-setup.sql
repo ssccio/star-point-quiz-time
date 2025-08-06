@@ -20,7 +20,9 @@ CREATE TABLE players (
     team VARCHAR(20) NOT NULL CHECK (team IN ('adah', 'ruth', 'esther', 'martha', 'electa')),
     score INTEGER DEFAULT 0,
     is_host BOOLEAN DEFAULT FALSE,
-    joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    is_active BOOLEAN DEFAULT TRUE,
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Answers table

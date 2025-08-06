@@ -58,15 +58,15 @@ export const sampleQuestions = [
   },
   {
     id: "7",
-    text: "What is the central teaching emphasized by the Eastern Star?",
+    text: "What virtue does the Martha star point symbolize?",
     options: [
-      "Charity and benevolence",
-      "Masonic degrees",
-      "Political involvement",
-      "Business networking",
+      "Hope",
+      "Faith",
+      "Love",
+      "Charity",
     ],
-    correctAnswer: "Charity and benevolence",
+    correctAnswer: "Faith",
     explanation:
-      "The Order of the Eastern Star emphasizes charity, truth, and loving-kindness as its core teachings.",
+      "Martha of Bethany represents Faith in the Order of the Eastern Star and is associated with the green point.",
   },
 ];
