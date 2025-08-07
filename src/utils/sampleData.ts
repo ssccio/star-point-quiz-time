@@ -59,12 +59,7 @@ export const sampleQuestions = [
   {
     id: "7",
     text: "What virtue does the Martha star point symbolize?",
-    options: [
-      "Hope",
-      "Faith",
-      "Love",
-      "Charity",
-    ],
+    options: ["Hope", "Faith", "Love", "Charity"],
     correctAnswer: "Faith",
     explanation:
       "Martha of Bethany represents Faith in the Order of the Eastern Star and is associated with the green point.",

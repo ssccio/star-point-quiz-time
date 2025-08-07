@@ -177,7 +177,7 @@ export const useGameState = (
   const gameSubscription = useSupabaseSubscription(
     () => {
       if (isPracticeMode || !gameId) return null;
-      
+
       return gameService.subscribeToGame(gameId, (updatedGame) => {
         console.log("Game update received:", updatedGame);
 
@@ -229,12 +229,12 @@ export const useGameState = (
     },
     [isPracticeMode, gameId, currentQuestionIndex, playerName, teamId, scores],
     {
-      debugLabel: 'GameState',
+      debugLabel: "GameState",
       enableToasts: true,
       onReconnected: () => {
         console.log("Game subscription reconnected - syncing state");
         syncGameState();
-      }
+      },
     }
   );
 

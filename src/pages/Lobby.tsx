@@ -27,14 +27,14 @@ const Lobby = () => {
 
   // Phone lock handler for lobby state
   const { retryOperation } = usePhoneLockHandler({
-    storageKey: `lobby_${gameData.gameId || 'unknown'}`,
+    storageKey: `lobby_${gameData.gameId || "unknown"}`,
     userState: {
       gameData,
       currentPlayer,
       game,
     },
     onReconnect: async () => {
-      console.log('Lobby reconnecting after phone unlock...');
+      console.log("Lobby reconnecting after phone unlock...");
       await retryOperation(async () => {
         await loadGameData();
       });
@@ -113,39 +113,41 @@ const Lobby = () => {
 
   // Set up robust subscriptions with reconnection
   const playersSubscription = useSupabaseSubscription(
-    () => gameService.subscribeToPlayers(gameData.gameId, (updatedPlayers) => {
-      setPlayers(updatedPlayers);
-    }),
+    () =>
+      gameService.subscribeToPlayers(gameData.gameId, (updatedPlayers) => {
+        setPlayers(updatedPlayers);
+      }),
     [gameData.gameId],
     {
-      debugLabel: 'Lobby-Players',
+      debugLabel: "Lobby-Players",
       enableToasts: false,
-      onReconnected: () => loadGameData()
+      onReconnected: () => loadGameData(),
     }
   );
 
   const gameSubscription = useSupabaseSubscription(
-    () => gameService.subscribeToGame(gameData.gameId, (updatedGame) => {
-      console.log("Lobby received game update:", updatedGame);
-      setGame(updatedGame);
+    () =>
+      gameService.subscribeToGame(gameData.gameId, (updatedGame) => {
+        console.log("Lobby received game update:", updatedGame);
+        setGame(updatedGame);
 
-      // If game starts, navigate to game page
-      if (updatedGame.status === "active") {
-        console.log("Game started! Navigating to game page...");
-        toast.success("Game is starting!");
-        navigate("/game", {
-          state: {
-            playerName: currentPlayer?.name || gameData.playerName,
-            team: currentPlayer?.team || gameData.team,
-          },
-        });
-      }
-    }),
+        // If game starts, navigate to game page
+        if (updatedGame.status === "active") {
+          console.log("Game started! Navigating to game page...");
+          toast.success("Game is starting!");
+          navigate("/game", {
+            state: {
+              playerName: currentPlayer?.name || gameData.playerName,
+              team: currentPlayer?.team || gameData.team,
+            },
+          });
+        }
+      }),
     [gameData.gameId],
     {
-      debugLabel: 'Lobby-Game',
+      debugLabel: "Lobby-Game",
       enableToasts: true,
-      onReconnected: () => loadGameData()
+      onReconnected: () => loadGameData(),
     }
   );
 

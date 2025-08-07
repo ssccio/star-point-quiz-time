@@ -1,12 +1,12 @@
-import { useCallback } from 'react';
-import { gameService } from '@/lib/gameService';
-import { useSupabaseSubscription } from './useSupabaseSubscription';
+import { useCallback } from "react";
+import { gameService } from "@/lib/gameService";
+import { useSupabaseSubscription } from "./useSupabaseSubscription";
 
 interface Player {
   id: string;
   game_id: string;
   name: string;
-  team: 'adah' | 'ruth' | 'esther' | 'martha' | 'electa';
+  team: "adah" | "ruth" | "esther" | "martha" | "electa";
   score: number;
   is_host: boolean;
   is_active: boolean;
@@ -17,7 +17,7 @@ interface Player {
 interface Game {
   id: string;
   game_code: string;
-  status: 'waiting' | 'active' | 'paused' | 'finished';
+  status: "waiting" | "active" | "paused" | "finished";
   current_question: number;
   host_id: string;
   created_at: string;
@@ -37,19 +37,18 @@ export const useAdminSubscriptions = ({
   onPlayersUpdate,
   onGameUpdate,
   onReconnected,
-  debugLabel = 'Admin'
+  debugLabel = "Admin",
 }: UseAdminSubscriptionsOptions) => {
-
   const refreshData = useCallback(async () => {
     if (!gameId) return;
-    
+
     try {
       console.log(`${debugLabel}: Refreshing data after reconnection`);
       const [players, game] = await Promise.all([
         gameService.getPlayers(gameId),
-        gameService.getGame(gameId)
+        gameService.getGame(gameId),
       ]);
-      
+
       onPlayersUpdate(players);
       if (game) {
         onGameUpdate(game);
@@ -70,11 +69,11 @@ export const useAdminSubscriptions = ({
     {
       debugLabel: `${debugLabel}-Players`,
       enableToasts: false,
-      onReconnected: refreshData
+      onReconnected: refreshData,
     }
   );
 
-  // Set up robust game subscription with reconnection  
+  // Set up robust game subscription with reconnection
   const gameSubscription = useSupabaseSubscription(
     () => {
       if (!gameId) return null;
@@ -84,7 +83,7 @@ export const useAdminSubscriptions = ({
     {
       debugLabel: `${debugLabel}-Game`,
       enableToasts: false,
-      onReconnected: refreshData
+      onReconnected: refreshData,
     }
   );
 

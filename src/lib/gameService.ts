@@ -179,9 +179,9 @@ export const gameService = {
       // Reactivate the player for reconnection
       await client
         .from("players")
-        .update({ 
+        .update({
           is_active: true,
-          last_active_at: new Date().toISOString()
+          last_active_at: new Date().toISOString(),
         })
         .eq("id", existingPlayer.id);
 
@@ -190,10 +190,10 @@ export const gameService = {
         `Player ${playerName} reconnecting to game ${game.id}. Status: ${game.status}, Queued: ${isQueued}`
       );
 
-      return { 
-        game, 
-        player: { ...existingPlayer, is_active: true }, 
-        isQueued 
+      return {
+        game,
+        player: { ...existingPlayer, is_active: true },
+        isQueued,
       };
     }
 

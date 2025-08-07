@@ -28,7 +28,7 @@ const TeamJoin = () => {
 
   // Use comprehensive phone lock handler
   const { restoreState, clearState, retryOperation } = usePhoneLockHandler({
-    storageKey: storageKey || '',
+    storageKey: storageKey || "",
     userState: {
       playerName,
       step,
@@ -37,23 +37,28 @@ const TeamJoin = () => {
     },
     onReconnect: async () => {
       // Handle reconnection after phone unlock
-      console.log('Reconnecting after phone unlock...');
-      
+      console.log("Reconnecting after phone unlock...");
+
       // Check for existing game data first
       const existingGameData = localStorage.getItem("gameData");
       if (existingGameData) {
         try {
           const gameData = JSON.parse(existingGameData);
           if (gameData.team === assignedTeam) {
-            toast.success(`Welcome back, ${gameData.playerName}! Returning to your game...`);
-            
+            toast.success(
+              `Welcome back, ${gameData.playerName}! Returning to your game...`
+            );
+
             // Verify game still exists with retry logic
             await retryOperation(async () => {
               const game = await gameService.getGame(gameData.gameCode);
               if (game) {
                 if (gameData.isQueued) {
                   navigate("/queue");
-                } else if (game.status === "active" || game.status === "paused") {
+                } else if (
+                  game.status === "active" ||
+                  game.status === "paused"
+                ) {
                   navigate("/game");
                 } else {
                   navigate("/lobby");
@@ -83,8 +88,10 @@ const TeamJoin = () => {
         try {
           const gameData = JSON.parse(existingGameData);
           if (gameData.team === assignedTeam) {
-            toast.success(`Welcome back, ${gameData.playerName}! Returning to your game...`);
-            
+            toast.success(
+              `Welcome back, ${gameData.playerName}! Returning to your game...`
+            );
+
             const game = await gameService.getGame(gameData.gameCode);
             if (game) {
               if (gameData.isQueued) {
@@ -169,13 +176,15 @@ const TeamJoin = () => {
     }
 
     setIsJoining(true);
-    
+
     try {
       await retryOperation(async () => {
         // Check if game exists first
         const game = await gameService.getGame(gameCode.toUpperCase());
         if (!game) {
-          throw new Error("Game not found - it may have been deleted or finished");
+          throw new Error(
+            "Game not found - it may have been deleted or finished"
+          );
         }
 
         if (game.status === "finished") {
@@ -226,7 +235,10 @@ const TeamJoin = () => {
           });
         } else {
           // Check if this is a reconnection (game is already active) or new join (waiting)
-          if (joinedGame.status === "active" || joinedGame.status === "paused") {
+          if (
+            joinedGame.status === "active" ||
+            joinedGame.status === "paused"
+          ) {
             toast.success(
               `Welcome back to Team ${teamName}! Rejoining the game...`
             );

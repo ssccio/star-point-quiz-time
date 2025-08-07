@@ -56,7 +56,7 @@ export const AdminLogin = ({ onLogin, error }: AdminLoginProps) => {
         <div className="text-center">
           <Button
             variant="ghost"
-            onClick={() => window.location.href = "/"}
+            onClick={() => (window.location.href = "/")}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

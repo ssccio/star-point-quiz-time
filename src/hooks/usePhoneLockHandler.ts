@@ -1,5 +1,5 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useEffect, useRef, useCallback } from "react";
+import { toast } from "sonner";
 
 interface PhoneLockState {
   userState: unknown;
@@ -16,7 +16,7 @@ interface UsePhoneLockHandlerOptions {
 
 /**
  * Hook to handle phone lock/unlock scenarios with state persistence and reconnection
- * 
+ *
  * Features:
  * - Detects when page becomes hidden/visible (phone lock/unlock)
  * - Persists user state during phone lock
@@ -42,12 +42,12 @@ export const usePhoneLockHandler = ({
         timestamp: Date.now(),
         page: window.location.pathname + window.location.search,
       };
-      
+
       try {
         localStorage.setItem(storageKey, JSON.stringify(stateToSave));
         console.log(`State saved for ${storageKey}:`, stateToSave);
       } catch (error) {
-        console.error('Failed to save phone lock state:', error);
+        console.error("Failed to save phone lock state:", error);
       }
     }
   }, [storageKey, userState]);
@@ -55,7 +55,7 @@ export const usePhoneLockHandler = ({
   // Load and restore state
   const restoreState = useCallback((): PhoneLockState | null => {
     if (!storageKey) return null;
-    
+
     try {
       const savedState = localStorage.getItem(storageKey);
       if (savedState) {
@@ -64,11 +64,11 @@ export const usePhoneLockHandler = ({
         return parsed;
       }
     } catch (error) {
-      console.error('Failed to restore phone lock state:', error);
+      console.error("Failed to restore phone lock state:", error);
       // Clean up corrupted data
       localStorage.removeItem(storageKey);
     }
-    
+
     return null;
   }, [storageKey]);
 
@@ -83,40 +83,47 @@ export const usePhoneLockHandler = ({
   // Handle visibility changes (phone lock/unlock)
   useEffect(() => {
     const handleVisibilityChange = async () => {
-      const isHidden = document.hidden || document.visibilityState === 'hidden';
-      const isVisible = document.visibilityState === 'visible';
+      const isHidden = document.hidden || document.visibilityState === "hidden";
+      const isVisible = document.visibilityState === "visible";
 
       if (isHidden) {
         // Phone is locking - save current state
         wasHiddenRef.current = true;
         lockTimeRef.current = Date.now();
         saveState();
-        
+
         if (enableToasts) {
-          console.log('Phone lock detected, state saved');
+          console.log("Phone lock detected, state saved");
         }
       } else if (isVisible && wasHiddenRef.current) {
         // Phone is unlocking - restore and reconnect
-        const lockDuration = lockTimeRef.current ? Date.now() - lockTimeRef.current : 0;
+        const lockDuration = lockTimeRef.current
+          ? Date.now() - lockTimeRef.current
+          : 0;
         wasHiddenRef.current = false;
         lockTimeRef.current = null;
 
-        console.log(`Phone unlock detected after ${Math.round(lockDuration / 1000)}s`);
+        console.log(
+          `Phone unlock detected after ${Math.round(lockDuration / 1000)}s`
+        );
 
         // Brief delay to allow network to stabilize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Check network connectivity
         if (!navigator.onLine) {
           if (enableToasts) {
-            toast.error('No internet connection. Please check your connection.');
+            toast.error(
+              "No internet connection. Please check your connection."
+            );
           }
           return;
         }
 
         // Show reconnecting message for longer locks
-        if (lockDuration > 30000 && enableToasts) { // 30+ seconds
-          toast.success('Welcome back! Reconnecting...');
+        if (lockDuration > 30000 && enableToasts) {
+          // 30+ seconds
+          toast.success("Welcome back! Reconnecting...");
         }
 
         // Attempt reconnection
@@ -124,9 +131,11 @@ export const usePhoneLockHandler = ({
           try {
             await onReconnect();
           } catch (error) {
-            console.error('Reconnection failed:', error);
+            console.error("Reconnection failed:", error);
             if (enableToasts) {
-              toast.error('Connection issue. Please refresh if problems persist.');
+              toast.error(
+                "Connection issue. Please refresh if problems persist."
+              );
             }
           }
         }
@@ -134,21 +143,21 @@ export const usePhoneLockHandler = ({
     };
 
     // Listen for visibility changes
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     // Also listen for page focus (additional safety net)
     const handleFocus = () => {
       if (wasHiddenRef.current) {
         handleVisibilityChange();
       }
     };
-    
-    window.addEventListener('focus', handleFocus);
+
+    window.addEventListener("focus", handleFocus);
 
     // Cleanup
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
@@ -161,55 +170,65 @@ export const usePhoneLockHandler = ({
   }, [saveState]);
 
   // Utility function for retrying network operations
-  const retryOperation = useCallback(async <T>(
-    operation: () => Promise<T>,
-    maxRetries: number = 3,
-    delayMs: number = 1000
-  ): Promise<T> => {
-    let lastError: Error;
+  const retryOperation = useCallback(
+    async <T>(
+      operation: () => Promise<T>,
+      maxRetries: number = 3,
+      delayMs: number = 1000
+    ): Promise<T> => {
+      let lastError: Error;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        // Add delay for retry attempts (not first attempt)
-        if (attempt > 1) {
-          await new Promise(resolve => setTimeout(resolve, delayMs * attempt));
-          
-          if (enableToasts && attempt === 2) {
-            toast.loading('Reconnecting...', { id: 'retry-operation' });
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          // Add delay for retry attempts (not first attempt)
+          if (attempt > 1) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, delayMs * attempt)
+            );
+
+            if (enableToasts && attempt === 2) {
+              toast.loading("Reconnecting...", { id: "retry-operation" });
+            }
           }
-        }
 
-        const result = await operation();
-        
-        // Clear retry toast on success
-        if (enableToasts && attempt > 1) {
-          toast.dismiss('retry-operation');
-        }
-        
-        return result;
-      } catch (error) {
-        lastError = error as Error;
-        console.log(`Operation failed (attempt ${attempt}/${maxRetries}):`, error);
+          const result = await operation();
 
-        // Don't retry for certain error types
-        if (error instanceof Error) {
-          const message = error.message.toLowerCase();
-          if (message.includes('game not found') || 
-              message.includes('finished') || 
-              message.includes('unauthorized')) {
-            break;
+          // Clear retry toast on success
+          if (enableToasts && attempt > 1) {
+            toast.dismiss("retry-operation");
+          }
+
+          return result;
+        } catch (error) {
+          lastError = error as Error;
+          console.log(
+            `Operation failed (attempt ${attempt}/${maxRetries}):`,
+            error
+          );
+
+          // Don't retry for certain error types
+          if (error instanceof Error) {
+            const message = error.message.toLowerCase();
+            if (
+              message.includes("game not found") ||
+              message.includes("finished") ||
+              message.includes("unauthorized")
+            ) {
+              break;
+            }
           }
         }
       }
-    }
 
-    // Clear retry toast on final failure
-    if (enableToasts) {
-      toast.dismiss('retry-operation');
-    }
+      // Clear retry toast on final failure
+      if (enableToasts) {
+        toast.dismiss("retry-operation");
+      }
 
-    throw lastError!;
-  }, [enableToasts]);
+      throw lastError!;
+    },
+    [enableToasts]
+  );
 
   return {
     restoreState,

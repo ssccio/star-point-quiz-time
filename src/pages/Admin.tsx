@@ -99,22 +99,22 @@ const Admin = () => {
     gameId: adminState.selectedGame?.id,
     onPlayersUpdate: (players) => {
       const teamData = calculateTeamData(players);
-      setAdminState(prev => ({
+      setAdminState((prev) => ({
         ...prev,
         players,
         teamData,
       }));
     },
     onGameUpdate: (game) => {
-      setAdminState(prev => ({
+      setAdminState((prev) => ({
         ...prev,
         selectedGame: game,
       }));
     },
     onReconnected: () => {
-      console.log('Admin subscriptions reconnected successfully');
+      console.log("Admin subscriptions reconnected successfully");
     },
-    debugLabel: 'Admin'
+    debugLabel: "Admin",
   });
 
   // Secure authentication with proper validation
