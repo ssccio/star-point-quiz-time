@@ -8,6 +8,7 @@ import {
 import { APP_CONFIG } from "@/utils/config";
 import { gameService } from "@/lib/gameService";
 import { practiceService } from "@/lib/practiceService";
+import { useSupabaseSubscription } from "./useSupabaseSubscription";
 
 export type GamePhase =
   | "question"
@@ -172,73 +173,75 @@ export const useGameState = (
     loadQuestions();
   }, [isPracticeMode, questionSetId, playerName, teamId, practiceSessionId]);
 
-  // Subscribe to game state changes for multiplayer mode
+  // Subscribe to game state changes for multiplayer mode with reconnection
+  const gameSubscription = useSupabaseSubscription(
+    () => {
+      if (isPracticeMode || !gameId) return null;
+      
+      return gameService.subscribeToGame(gameId, (updatedGame) => {
+        console.log("Game update received:", updatedGame);
+
+        // Handle game deletion (null/undefined game)
+        if (!updatedGame) {
+          console.log("Game was deleted - redirecting to error recovery");
+          navigate("/new-game", {
+            state: {
+              playerName,
+              team: teamId,
+              fromError: true,
+            },
+          });
+          return;
+        }
+
+        // Sync current question index with game state
+        if (
+          updatedGame.current_question &&
+          updatedGame.current_question !== currentQuestionIndex + 1
+        ) {
+          console.log(
+            "Question changed from",
+            currentQuestionIndex + 1,
+            "to",
+            updatedGame.current_question
+          );
+          setCurrentQuestionIndex(updatedGame.current_question - 1);
+          setPhase("question");
+          setSelectedAnswer(null);
+          setHasSubmitted(false);
+          // Reset teammates answered status for new question
+          setTeamMates((prev) =>
+            prev.map((mate) => ({ ...mate, hasAnswered: false }))
+          );
+        }
+
+        // Handle game completion
+        if (updatedGame.status === "finished") {
+          navigate("/results", {
+            state: {
+              playerName,
+              team: teamId,
+              finalScores: scores,
+            },
+          });
+        }
+      });
+    },
+    [isPracticeMode, gameId, currentQuestionIndex, playerName, teamId, scores],
+    {
+      debugLabel: 'GameState',
+      enableToasts: true,
+      onReconnected: () => {
+        console.log("Game subscription reconnected - syncing state");
+        syncGameState();
+      }
+    }
+  );
+
+  // Initial sync for multiplayer mode
   useEffect(() => {
     if (isPracticeMode || !gameId) return;
-
-    console.log("Setting up game subscription for gameId:", gameId);
-
-    // Get game data from localStorage
-    const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
-    const gameCode = gameData.gameCode;
-    const isQueued = gameData.isQueued;
-
-    // Initial sync - get current game state on mount/reload
-
     syncGameState();
-
-    const subscription = gameService.subscribeToGame(gameId, (updatedGame) => {
-      console.log("Game update received:", updatedGame);
-
-      // Handle game deletion (null/undefined game)
-      if (!updatedGame) {
-        console.log("Game was deleted - redirecting to error recovery");
-        navigate("/new-game", {
-          state: {
-            playerName,
-            team: teamId,
-            fromError: true,
-          },
-        });
-        return;
-      }
-
-      // Sync current question index with game state
-      if (
-        updatedGame.current_question &&
-        updatedGame.current_question !== currentQuestionIndex + 1
-      ) {
-        console.log(
-          "Question changed from",
-          currentQuestionIndex + 1,
-          "to",
-          updatedGame.current_question
-        );
-        setCurrentQuestionIndex(updatedGame.current_question - 1);
-        setPhase("question");
-        setSelectedAnswer(null);
-        setHasSubmitted(false);
-        // Reset teammates answered status for new question
-        setTeamMates((prev) =>
-          prev.map((mate) => ({ ...mate, hasAnswered: false }))
-        );
-      }
-
-      // Handle game completion
-      if (updatedGame.status === "finished") {
-        navigate("/results", {
-          state: {
-            playerName,
-            team: teamId,
-            finalScores: scores,
-          },
-        });
-      }
-    });
-
-    return () => {
-      subscription?.unsubscribe();
-    };
   }, [
     isPracticeMode,
     gameId,

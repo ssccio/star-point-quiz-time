@@ -2,14 +2,14 @@ import { useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 
 interface PhoneLockState {
-  userState: any;
+  userState: unknown;
   timestamp: number;
   page: string;
 }
 
 interface UsePhoneLockHandlerOptions {
   storageKey: string;
-  userState: any;
+  userState: unknown;
   onReconnect?: () => void | Promise<void>;
   enableToasts?: boolean;
 }

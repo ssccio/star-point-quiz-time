@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSupabaseSubscription } from "@/hooks/useSupabaseSubscription";
+import { useAdminSubscriptions } from "@/hooks/useAdminSubscriptions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +40,6 @@ import { TeamManagement } from "@/components/admin/TeamManagement";
 import { QuestionDisplay } from "@/components/admin/QuestionDisplay";
 import { PracticeManagement } from "@/components/admin/PracticeManagement";
 import { gameService } from "@/lib/gameService";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import type { Database } from "@/lib/supabase";
 
@@ -91,6 +92,29 @@ const Admin = () => {
     error: null,
     availableGames: [],
     showGameList: false,
+  });
+
+  // Set up robust subscriptions for admin panel with phone lock recovery
+  const adminSubscriptions = useAdminSubscriptions({
+    gameId: adminState.selectedGame?.id,
+    onPlayersUpdate: (players) => {
+      const teamData = calculateTeamData(players);
+      setAdminState(prev => ({
+        ...prev,
+        players,
+        teamData,
+      }));
+    },
+    onGameUpdate: (game) => {
+      setAdminState(prev => ({
+        ...prev,
+        selectedGame: game,
+      }));
+    },
+    onReconnected: () => {
+      console.log('Admin subscriptions reconnected successfully');
+    },
+    debugLabel: 'Admin'
   });
 
   // Secure authentication with proper validation
@@ -185,33 +209,7 @@ const Admin = () => {
         loading: false,
       }));
 
-      // Subscribe to real-time updates
-      const playerSubscription = gameService.subscribeToPlayers(
-        game.id,
-        (updatedPlayers) => {
-          const newTeamData = calculateTeamData(updatedPlayers);
-          setAdminState((prev) => ({
-            ...prev,
-            players: updatedPlayers,
-            teamData: newTeamData,
-          }));
-        }
-      );
-
-      const gameSubscription = gameService.subscribeToGame(
-        game.id,
-        (updatedGame) => {
-          setAdminState((prev) => ({
-            ...prev,
-            selectedGame: updatedGame,
-          }));
-        }
-      );
-
-      return () => {
-        supabase.removeChannel(playerSubscription);
-        supabase.removeChannel(gameSubscription);
-      };
+      // Subscriptions are now managed by useAdminSubscriptions hook
     } catch (error) {
       setAdminState((prev) => ({
         ...prev,
@@ -387,28 +385,7 @@ const Admin = () => {
         error: null,
       }));
 
-      // Subscribe to real-time updates
-      const playerSubscription = gameService.subscribeToPlayers(
-        game.id,
-        (updatedPlayers) => {
-          const newTeamData = calculateTeamData(updatedPlayers);
-          setAdminState((prev) => ({
-            ...prev,
-            players: updatedPlayers,
-            teamData: newTeamData,
-          }));
-        }
-      );
-
-      const gameSubscription = gameService.subscribeToGame(
-        game.id,
-        (updatedGame) => {
-          setAdminState((prev) => ({
-            ...prev,
-            selectedGame: updatedGame,
-          }));
-        }
-      );
+      // Subscriptions are now managed by useAdminSubscriptions hook
 
       setShowCreateGame(false);
       toast.success(`Connected to game ${game.game_code}!`);

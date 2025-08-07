@@ -8,6 +8,7 @@ import { gameService } from "@/lib/gameService";
 import type { Database } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePhoneLockHandler } from "@/hooks/usePhoneLockHandler";
+import { useSupabaseSubscription } from "@/hooks/useSupabaseSubscription";
 
 type Player = Database["public"]["Tables"]["players"]["Row"];
 type Game = Database["public"]["Tables"]["games"]["Row"];
@@ -50,38 +51,8 @@ const Lobby = () => {
     }
 
     loadGameData();
-    const subscriptions = setupRealTimeSubscriptions();
-
-    // Add visibility change handler to detect app backgrounding/lock screen
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        // App came back to foreground - check if we missed anything
-        lastActiveRef.current = Date.now();
-        console.log("App became visible - checking for missed updates");
-
-        // Clear any pending reconnect attempts
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current);
-          reconnectTimeoutRef.current = null;
-        }
-
-        // Refresh game state to catch any missed updates
-        loadGameData();
-      } else {
-        // App went to background - start monitoring for reconnection
-        console.log("App went to background");
-        scheduleReconnectCheck();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      // Cleanup subscriptions
-      subscriptions.playersSubscription?.unsubscribe();
-      subscriptions.gameSubscription?.unsubscribe();
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
@@ -140,38 +111,43 @@ const Lobby = () => {
     }
   };
 
-  const setupRealTimeSubscriptions = () => {
-    // Subscribe to player updates
-    const playersSubscription = gameService.subscribeToPlayers(
-      gameData.gameId,
-      (updatedPlayers) => {
-        setPlayers(updatedPlayers);
+  // Set up robust subscriptions with reconnection
+  const playersSubscription = useSupabaseSubscription(
+    () => gameService.subscribeToPlayers(gameData.gameId, (updatedPlayers) => {
+      setPlayers(updatedPlayers);
+    }),
+    [gameData.gameId],
+    {
+      debugLabel: 'Lobby-Players',
+      enableToasts: false,
+      onReconnected: () => loadGameData()
+    }
+  );
+
+  const gameSubscription = useSupabaseSubscription(
+    () => gameService.subscribeToGame(gameData.gameId, (updatedGame) => {
+      console.log("Lobby received game update:", updatedGame);
+      setGame(updatedGame);
+
+      // If game starts, navigate to game page
+      if (updatedGame.status === "active") {
+        console.log("Game started! Navigating to game page...");
+        toast.success("Game is starting!");
+        navigate("/game", {
+          state: {
+            playerName: currentPlayer?.name || gameData.playerName,
+            team: currentPlayer?.team || gameData.team,
+          },
+        });
       }
-    );
-
-    // Subscribe to game status updates
-    const gameSubscription = gameService.subscribeToGame(
-      gameData.gameId,
-      (updatedGame) => {
-        console.log("Lobby received game update:", updatedGame);
-        setGame(updatedGame);
-
-        // If game starts, navigate to game page
-        if (updatedGame.status === "active") {
-          console.log("Game started! Navigating to game page...");
-          toast.success("Game is starting!");
-          navigate("/game", {
-            state: {
-              playerName: currentPlayer?.name || gameData.playerName,
-              team: currentPlayer?.team || gameData.team,
-            },
-          });
-        }
-      }
-    );
-
-    return { playersSubscription, gameSubscription };
-  };
+    }),
+    [gameData.gameId],
+    {
+      debugLabel: 'Lobby-Game',
+      enableToasts: true,
+      onReconnected: () => loadGameData()
+    }
+  );
 
   const startGame = async () => {
     if (!currentPlayer?.is_host || !game) return;
