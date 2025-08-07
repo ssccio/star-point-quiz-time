@@ -314,6 +314,18 @@ const Admin = () => {
     try {
       await gameService.endGame(adminState.selectedGame.id);
       toast.success("Game ended");
+
+      // Update local game state to reflect the change immediately
+      setAdminState((prev) => ({
+        ...prev,
+        selectedGame: prev.selectedGame
+          ? {
+              ...prev.selectedGame,
+              status: "finished",
+            }
+          : null,
+        error: null,
+      }));
     } catch (error) {
       setAdminState((prev) => ({
         ...prev,

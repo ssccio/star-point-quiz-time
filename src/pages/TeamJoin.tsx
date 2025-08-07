@@ -75,6 +75,34 @@ const TeamJoin = () => {
           localStorage.removeItem("gameData");
         }
       }
+
+      // If no existing game data, restore team join state
+      const savedState = restoreState();
+      if (savedState?.userState) {
+        const { 
+          playerName: savedName, 
+          step: savedStep, 
+          gameCode: savedGameCode 
+        } = savedState.userState;
+        
+        if (savedName) {
+          setPlayerName(savedName);
+          
+          if (savedStep) {
+            setStep(savedStep);
+          }
+          
+          if (savedGameCode) {
+            setGameCode(savedGameCode);
+          }
+          
+          if (savedStep === "code") {
+            toast.success(`Welcome back, ${savedName}! Ready for the game code.`);
+          } else {
+            toast.success(`Welcome back, ${savedName}!`);
+          }
+        }
+      }
     },
     enableToasts: true,
   });
@@ -115,13 +143,33 @@ const TeamJoin = () => {
       // Restore team join state if no existing game data
       const savedState = restoreState();
       if (savedState?.userState) {
-        const { playerName: savedName, step: savedStep } = savedState.userState;
-        if (savedName && savedStep) {
+        const { 
+          playerName: savedName, 
+          step: savedStep, 
+          gameCode: savedGameCode 
+        } = savedState.userState;
+        
+        if (savedName) {
           setIsResuming(true);
           setPlayerName(savedName);
-          setStep(savedStep);
+          
+          // Restore the step (name or code)
+          if (savedStep) {
+            setStep(savedStep);
+          }
+          
+          // Restore game code if it was saved
+          if (savedGameCode) {
+            setGameCode(savedGameCode);
+          }
+          
           setTimeout(() => setIsResuming(false), 3000);
-          toast.success(`Welcome back, ${savedName}! Ready for the game code.`);
+          
+          if (savedStep === "code") {
+            toast.success(`Welcome back, ${savedName}! Ready for the game code.`);
+          } else {
+            toast.success(`Welcome back, ${savedName}!`);
+          }
         }
       }
     };
