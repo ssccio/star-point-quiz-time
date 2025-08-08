@@ -820,7 +820,10 @@ export const gameService = {
   },
 
   // Store questions for a game (called when game is created)
-  async storeGameQuestions(gameId: string, questions: any[]): Promise<void> {
+  async storeGameQuestions(
+    gameId: string,
+    questions: Question[]
+  ): Promise<void> {
     if (isDevelopmentMode) {
       // Mock implementation - store in memory
       const gameQuestions: GameQuestion[] = questions.map((q, index) => ({
@@ -853,14 +856,13 @@ export const gameService = {
       explanation: q.explanation,
     }));
 
-    const { error } = await client
-      .from("game_questions")
-      .insert(gameQuestions);
+    const { error } = await client.from("game_questions").insert(gameQuestions);
 
     if (error) {
+      console.error("Database error storing questions:", error);
       throw new GameServiceError(
-        `Failed to store game questions: ${error.message}`,
-        error.code
+        `Failed to store game questions: ${error.message || error.code || "Unknown database error"}`,
+        error.code || "UNKNOWN"
       );
     }
   },
@@ -887,16 +889,18 @@ export const gameService = {
       );
     }
 
-    return data?.map((q) => ({
-      id: q.id,
-      question_number: q.question_number,
-      question_text: q.question_text,
-      option_a: q.option_a,
-      option_b: q.option_b,
-      option_c: q.option_c,
-      option_d: q.option_d,
-      correct_answer: q.correct_answer,
-      explanation: q.explanation,
-    })) || [];
+    return (
+      data?.map((q) => ({
+        id: q.id,
+        question_number: q.question_number,
+        question_text: q.question_text,
+        option_a: q.option_a,
+        option_b: q.option_b,
+        option_c: q.option_c,
+        option_d: q.option_d,
+        correct_answer: q.correct_answer,
+        explanation: q.explanation,
+      })) || []
+    );
   },
 };

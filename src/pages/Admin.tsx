@@ -475,9 +475,29 @@ const Admin = () => {
       );
 
       // Load and store questions for the game to ensure all players see the same questions
-      const { loadDefaultQuestions } = await import("@/utils/questionLoader");
-      const questionData = await loadDefaultQuestions(true, false); // Randomize questions but NOT answers for consistency
-      await gameService.storeGameQuestions(game.id, questionData.questions);
+      try {
+        const { loadDefaultQuestions } = await import("@/utils/questionLoader");
+        const questionData = await loadDefaultQuestions(true, false); // Randomize questions but NOT answers for consistency
+
+        // Only store questions if not in development mode or if Supabase is configured
+        const isDevMode =
+          !import.meta.env.VITE_SUPABASE_URL ||
+          import.meta.env.VITE_SUPABASE_URL === "http://localhost:54321";
+
+        if (!isDevMode) {
+          await gameService.storeGameQuestions(game.id, questionData.questions);
+        } else {
+          console.log(
+            "Development mode: Skipping question storage to database"
+          );
+        }
+      } catch (questionError) {
+        // Log the error but don't fail game creation
+        console.error("Error storing questions:", questionError);
+        toast.warning(
+          "Game created but questions may not be synchronized. Continuing anyway."
+        );
+      }
 
       // Set the created game as the current game
       setGameCode(newGameCode);
@@ -492,10 +512,12 @@ const Admin = () => {
       toast.success(`Game created successfully! Code: ${newGameCode}`);
     } catch (error) {
       console.error("Error creating game:", error);
-      toast.error("Failed to create game. Please try again.");
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create game";
+      toast.error(`Failed to create game: ${errorMessage}`);
       setAdminState((prev) => ({
         ...prev,
-        error: error instanceof Error ? error.message : "Failed to create game",
+        error: errorMessage,
       }));
     } finally {
       setIsCreatingGame(false);
