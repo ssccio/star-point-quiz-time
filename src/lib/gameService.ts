@@ -36,12 +36,25 @@ export interface PlayerAnswer {
   answered_at: string;
 }
 
+export interface GameQuestion {
+  id: string;
+  question_number: number;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_answer: string;
+  explanation?: string;
+}
+
 // Mock data store for development mode
 const mockStore = {
   games: new Map<string, Game>(),
   players: new Map<string, Player>(),
   answers: new Map<string, Answer>(),
   gamesByCode: new Map<string, string>(), // gameCode -> gameId mapping
+  gameQuestions: new Map<string, GameQuestion[]>(), // gameId -> questions mapping
 };
 
 // Generate random 3-character game code (letters only)
@@ -804,5 +817,86 @@ export const gameService = {
       .eq("is_active", false);
 
     return data?.length || 0;
+  },
+
+  // Store questions for a game (called when game is created)
+  async storeGameQuestions(gameId: string, questions: any[]): Promise<void> {
+    if (isDevelopmentMode) {
+      // Mock implementation - store in memory
+      const gameQuestions: GameQuestion[] = questions.map((q, index) => ({
+        id: crypto.randomUUID(),
+        question_number: index + 1,
+        question_text: q.question,
+        option_a: q.options.A,
+        option_b: q.options.B,
+        option_c: q.options.C,
+        option_d: q.options.D,
+        correct_answer: q.correctAnswer,
+        explanation: q.explanation,
+      }));
+      mockStore.gameQuestions.set(gameId, gameQuestions);
+      return;
+    }
+
+    const client = ensureSupabaseConfigured();
+
+    // Transform questions to database format
+    const gameQuestions = questions.map((q, index) => ({
+      game_id: gameId,
+      question_number: index + 1,
+      question_text: q.question,
+      option_a: q.options.A,
+      option_b: q.options.B,
+      option_c: q.options.C,
+      option_d: q.options.D,
+      correct_answer: q.correctAnswer,
+      explanation: q.explanation,
+    }));
+
+    const { error } = await client
+      .from("game_questions")
+      .insert(gameQuestions);
+
+    if (error) {
+      throw new GameServiceError(
+        `Failed to store game questions: ${error.message}`,
+        error.code
+      );
+    }
+  },
+
+  // Get questions for a game
+  async getGameQuestions(gameId: string): Promise<GameQuestion[]> {
+    if (isDevelopmentMode) {
+      // Mock implementation - return from memory
+      return mockStore.gameQuestions.get(gameId) || [];
+    }
+
+    const client = ensureSupabaseConfigured();
+
+    const { data, error } = await client
+      .from("game_questions")
+      .select("*")
+      .eq("game_id", gameId)
+      .order("question_number");
+
+    if (error) {
+      throw new GameServiceError(
+        `Failed to retrieve game questions: ${error.message}`,
+        error.code
+      );
+    }
+
+    return data?.map((q) => ({
+      id: q.id,
+      question_number: q.question_number,
+      question_text: q.question_text,
+      option_a: q.option_a,
+      option_b: q.option_b,
+      option_c: q.option_c,
+      option_d: q.option_d,
+      correct_answer: q.correct_answer,
+      explanation: q.explanation,
+    })) || [];
   },
 };

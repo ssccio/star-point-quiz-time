@@ -474,6 +474,11 @@ const Admin = () => {
         hostName.trim()
       );
 
+      // Load and store questions for the game to ensure all players see the same questions
+      const { loadDefaultQuestions } = await import("@/utils/questionLoader");
+      const questionData = await loadDefaultQuestions(true, false); // Randomize questions but NOT answers for consistency
+      await gameService.storeGameQuestions(game.id, questionData.questions);
+
       // Set the created game as the current game
       setGameCode(newGameCode);
       setAdminState((prev) => ({

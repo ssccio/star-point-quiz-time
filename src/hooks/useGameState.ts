@@ -128,7 +128,7 @@ export const useGameState = (
     null
   );
 
-  // Load questions from YAML on mount
+  // Load questions from YAML on mount (practice mode) or database (multiplayer)
   useEffect(() => {
     const loadQuestions = async () => {
       try {
@@ -138,14 +138,59 @@ export const useGameState = (
           // Load specific question set for practice mode
           questionsData = await loadQuestionsFromYAML(`${questionSetId}.yaml`);
           console.log("Loaded practice questions:", questionSetId);
-        } else {
-          // Load default questions for multiplayer
+        } else if (isPracticeMode) {
+          // Load default questions for practice mode
           questionsData = await loadDefaultQuestions();
-          console.log("Loaded default questions");
+          console.log("Loaded default questions for practice");
+        } else if (gameId) {
+          // For multiplayer mode, get questions from the database
+          try {
+            const gameQuestions = await gameService.getGameQuestions(gameId);
+            if (gameQuestions.length > 0) {
+              // Convert database questions to the format expected by the game
+              const convertedQuestions = gameQuestions.map((q) => ({
+                id: q.question_number.toString(),
+                question: q.question_text,
+                options: {
+                  A: q.option_a,
+                  B: q.option_b,
+                  C: q.option_c,
+                  D: q.option_d,
+                },
+                correctAnswer: q.correct_answer,
+                explanation: q.explanation || "",
+              }));
+              
+              setQuestions(convertedQuestions);
+              setQuestionMetadata({
+                title: "Eastern Star Trivia",
+                description: "Synchronized multiplayer questions",
+                difficulty: "mixed",
+                category: "multiplayer",
+                created: new Date().toISOString().split('T')[0],
+                version: "1.0",
+              });
+              console.log("Loaded", gameQuestions.length, "questions from database for game", gameId);
+              return;
+            }
+          } catch (error) {
+            console.error("Failed to load questions from database:", error);
+            // Fall back to default questions
+          }
+          
+          // Fallback: load default questions if database fetch failed
+          questionsData = await loadDefaultQuestions();
+          console.log("Loaded fallback default questions for multiplayer");
+        } else {
+          // Fallback case
+          questionsData = await loadDefaultQuestions();
+          console.log("Loaded fallback questions");
         }
 
-        setQuestions(questionsData.questions);
-        setQuestionMetadata(questionsData.metadata);
+        if (questionsData) {
+          setQuestions(questionsData.questions);
+          setQuestionMetadata(questionsData.metadata);
+        }
 
         // Start practice session tracking if in practice mode
         if (
@@ -171,7 +216,7 @@ export const useGameState = (
     };
 
     loadQuestions();
-  }, [isPracticeMode, questionSetId, playerName, teamId, practiceSessionId]);
+  }, [isPracticeMode, questionSetId, playerName, teamId, practiceSessionId, gameId]);
 
   // Subscribe to game state changes for multiplayer mode with reconnection
   const gameSubscription = useSupabaseSubscription(
