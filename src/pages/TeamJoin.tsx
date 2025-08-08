@@ -39,33 +39,38 @@ const TeamJoin = () => {
       // Handle reconnection after phone unlock
       console.log("Reconnecting after phone unlock...");
 
-      // Check for existing game data first
+      // Check for existing game data first - but only for active games
       const existingGameData = localStorage.getItem("gameData");
       if (existingGameData) {
         try {
           const gameData = JSON.parse(existingGameData);
           if (gameData.team === assignedTeam) {
-            toast.success(
-              `Welcome back, ${gameData.playerName}! Returning to your game...`
-            );
-
-            // Verify game still exists with retry logic
+            // Verify game still exists and is active with retry logic
             await retryOperation(async () => {
               const game = await gameService.getGame(gameData.gameCode);
-              if (game) {
+              if (game && (game.status === "active" || game.status === "paused")) {
+                toast.success(
+                  `Welcome back, ${gameData.playerName}! Returning to your active game...`
+                );
+                
                 if (gameData.isQueued) {
                   navigate("/queue");
-                } else if (
-                  game.status === "active" ||
-                  game.status === "paused"
-                ) {
+                } else if (game.status === "active" || game.status === "paused") {
                   navigate("/game");
                 } else {
                   navigate("/lobby");
                 }
               } else {
+                // Game doesn't exist or isn't active - clear old data and start fresh
                 localStorage.removeItem("gameData");
-                throw new Error("Game no longer exists");
+                if (game && game.status === "waiting") {
+                  toast.info("Previous game ended. Starting fresh for the new game.");
+                } else if (game && game.status === "finished") {
+                  toast.info("Previous game finished. Starting fresh for a new game.");
+                } else {
+                  toast.info("Starting fresh. Please enter your name to join.");
+                }
+                throw new Error("Game no longer active - starting fresh");
               }
             });
             return;
@@ -73,6 +78,7 @@ const TeamJoin = () => {
         } catch (error) {
           console.error("Error handling existing game data:", error);
           localStorage.removeItem("gameData");
+          // Don't return here - let it fall through to restore team join state
         }
       }
 
@@ -110,18 +116,19 @@ const TeamJoin = () => {
   // Restore state on mount
   useEffect(() => {
     const handleInitialLoad = async () => {
-      // Check for existing game data first
+      // Check for existing game data first - but only for active games
       const existingGameData = localStorage.getItem("gameData");
       if (existingGameData) {
         try {
           const gameData = JSON.parse(existingGameData);
           if (gameData.team === assignedTeam) {
-            toast.success(
-              `Welcome back, ${gameData.playerName}! Returning to your game...`
-            );
-
+            // Only auto-rejoin if the game is still active/paused
             const game = await gameService.getGame(gameData.gameCode);
-            if (game) {
+            if (game && (game.status === "active" || game.status === "paused")) {
+              toast.success(
+                `Welcome back, ${gameData.playerName}! Returning to your active game...`
+              );
+              
               if (gameData.isQueued) {
                 navigate("/queue");
               } else if (game.status === "active" || game.status === "paused") {
@@ -131,7 +138,15 @@ const TeamJoin = () => {
               }
               return;
             } else {
+              // Game doesn't exist or isn't active - clear old data and start fresh
               localStorage.removeItem("gameData");
+              if (game && game.status === "waiting") {
+                toast.info("Previous game ended. Starting fresh for the new game.");
+              } else if (game && game.status === "finished") {
+                toast.info("Previous game finished. Starting fresh for a new game.");
+              } else {
+                toast.info("Starting fresh. Please enter your name to join.");
+              }
             }
           }
         } catch (error) {
@@ -140,7 +155,7 @@ const TeamJoin = () => {
         }
       }
 
-      // Restore team join state if no existing game data
+      // Restore team join state (only for this team assignment flow)
       const savedState = restoreState();
       if (savedState?.userState) {
         const { 
