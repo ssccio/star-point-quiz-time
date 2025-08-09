@@ -160,27 +160,35 @@ export const useGameState = (
                 correctAnswer: q.correct_answer,
                 explanation: q.explanation || "",
               }));
-              
+
               setQuestions(convertedQuestions);
               setQuestionMetadata({
                 title: "Eastern Star Trivia",
                 description: "Synchronized multiplayer questions",
                 difficulty: "mixed",
                 category: "multiplayer",
-                created: new Date().toISOString().split('T')[0],
+                created: new Date().toISOString().split("T")[0],
                 version: "1.0",
               });
-              console.log("Loaded", gameQuestions.length, "questions from database for game", gameId);
+              console.log(
+                "Loaded",
+                gameQuestions.length,
+                "questions from database for game",
+                gameId
+              );
               return;
             }
           } catch (error) {
             console.error("Failed to load questions from database:", error);
             // Fall back to default questions
           }
-          
+
           // Fallback: load default questions if database fetch failed
-          questionsData = await loadDefaultQuestions();
-          console.log("Loaded fallback default questions for multiplayer");
+          // IMPORTANT: Don't randomize for multiplayer - all players need same order!
+          questionsData = await loadDefaultQuestions(false, false); // No randomization
+          console.log(
+            "Loaded fallback default questions for multiplayer (not randomized)"
+          );
         } else {
           // Fallback case
           questionsData = await loadDefaultQuestions();
@@ -216,7 +224,14 @@ export const useGameState = (
     };
 
     loadQuestions();
-  }, [isPracticeMode, questionSetId, playerName, teamId, practiceSessionId, gameId]);
+  }, [
+    isPracticeMode,
+    questionSetId,
+    playerName,
+    teamId,
+    practiceSessionId,
+    gameId,
+  ]);
 
   // Subscribe to game state changes for multiplayer mode with reconnection
   const gameSubscription = useSupabaseSubscription(

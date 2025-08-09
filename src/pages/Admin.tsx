@@ -25,6 +25,7 @@ import {
   Calendar,
   Users,
   ArrowLeft,
+  Upload,
 } from "lucide-react";
 import { sampleQuestions } from "@/utils/sampleData";
 import {
@@ -32,6 +33,7 @@ import {
   loadQuestionsFromYAML,
   getAvailableQuestionSets,
 } from "@/utils/questionLoader";
+import { questionSetService, type QuestionSet } from "@/lib/questionSetService";
 import { APP_CONFIG } from "@/utils/config";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { GameControls } from "@/components/admin/GameControls";
@@ -78,6 +80,11 @@ const Admin = () => {
     "rob-morris-biography"
   );
   const [loadedQuestions, setLoadedQuestions] = useState(sampleQuestions);
+  const [availableQuestionSets, setAvailableQuestionSets] = useState<
+    QuestionSet[]
+  >([]);
+  const [selectedQuestionSetId, setSelectedQuestionSetId] =
+    useState<string>("");
   const [adminState, setAdminState] = useState<AdminState>({
     selectedGame: null,
     players: [],
@@ -156,6 +163,27 @@ const Admin = () => {
       localStorage.removeItem("adminAuth");
     }
   }, []);
+
+  // Load question sets from database
+  useEffect(() => {
+    const loadQuestionSets = async () => {
+      try {
+        const sets = await questionSetService.getQuestionSets();
+        setAvailableQuestionSets(sets);
+        // Select the first set by default if available
+        if (sets.length > 0 && !selectedQuestionSetId) {
+          setSelectedQuestionSetId(sets[0].id);
+        }
+      } catch (error) {
+        console.error("Error loading question sets:", error);
+        // Silently fail - will fall back to YAML files
+      }
+    };
+
+    if (isAuthenticated) {
+      loadQuestionSets();
+    }
+  }, [isAuthenticated, selectedQuestionSetId]);
 
   // Load questions to get accurate count and questions
   useEffect(() => {
@@ -474,22 +502,39 @@ const Admin = () => {
         hostName.trim()
       );
 
-      // Load and store questions for the game to ensure all players see the same questions
+      // Copy questions from the selected question set to the game
       try {
-        const { loadDefaultQuestions } = await import("@/utils/questionLoader");
-        const questionData = await loadDefaultQuestions(true, false); // Randomize questions but NOT answers for consistency
-
-        // Only store questions if not in development mode or if Supabase is configured
-        const isDevMode =
-          !import.meta.env.VITE_SUPABASE_URL ||
-          import.meta.env.VITE_SUPABASE_URL === "http://localhost:54321";
-
-        if (!isDevMode) {
-          await gameService.storeGameQuestions(game.id, questionData.questions);
-        } else {
-          console.log(
-            "Development mode: Skipping question storage to database"
+        if (selectedQuestionSetId && availableQuestionSets.length > 0) {
+          // Use database question set
+          await questionSetService.copyQuestionsToGame(
+            game.id,
+            selectedQuestionSetId,
+            true // Randomize question order for this game
           );
+          console.log("Questions copied from database set to game");
+        } else {
+          // Fallback to loading from YAML and storing directly
+          const { loadDefaultQuestions } = await import(
+            "@/utils/questionLoader"
+          );
+          const questionData = await loadDefaultQuestions(true, false); // Randomize questions but NOT answers
+
+          // Only store questions if not in development mode
+          const isDevMode =
+            !import.meta.env.VITE_SUPABASE_URL ||
+            import.meta.env.VITE_SUPABASE_URL === "http://localhost:54321";
+
+          if (!isDevMode) {
+            await gameService.storeGameQuestions(
+              game.id,
+              questionData.questions
+            );
+            console.log("Questions stored from YAML fallback");
+          } else {
+            console.log(
+              "Development mode: Skipping question storage to database"
+            );
+          }
         }
       } catch (questionError) {
         // Log the error but don't fail game creation
@@ -747,14 +792,59 @@ const Admin = () => {
                     <div>
                       <Label htmlFor="questionSet">Question Set</Label>
                       <Select
-                        value={selectedQuestionSet}
-                        onValueChange={setSelectedQuestionSet}
+                        value={selectedQuestionSetId || selectedQuestionSet}
+                        onValueChange={(value) => {
+                          // Check if it's a database ID or YAML file
+                          const dbSet = availableQuestionSets.find(
+                            (s) => s.id === value
+                          );
+                          if (dbSet) {
+                            setSelectedQuestionSetId(value);
+                          } else {
+                            setSelectedQuestionSet(value);
+                            setSelectedQuestionSetId("");
+                          }
+                        }}
                         disabled={isCreatingGame}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select question set" />
                         </SelectTrigger>
                         <SelectContent>
+                          {/* Show database question sets first */}
+                          {availableQuestionSets.length > 0 && (
+                            <>
+                              <SelectItem value="__label__" disabled>
+                                <span className="font-semibold text-gray-500">
+                                  Database Sets
+                                </span>
+                              </SelectItem>
+                              {availableQuestionSets.map((set) => (
+                                <SelectItem key={set.id} value={set.id}>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">
+                                      {set.name}
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                      {set.description} ({set.question_count}{" "}
+                                      questions)
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="__separator__" disabled>
+                                <span className="font-semibold text-gray-500">
+                                  ─────────────
+                                </span>
+                              </SelectItem>
+                            </>
+                          )}
+                          {/* Fallback to YAML files */}
+                          <SelectItem value="__label2__" disabled>
+                            <span className="font-semibold text-gray-500">
+                              YAML Files (Fallback)
+                            </span>
+                          </SelectItem>
                           {getAvailableQuestionSets().map((set) => (
                             <SelectItem key={set.id} value={set.id}>
                               <div className="flex flex-col">
@@ -767,9 +857,54 @@ const Admin = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {totalQuestions} questions available
-                      </p>
+                      <div className="mt-1 flex items-center justify-between">
+                        <p className="text-sm text-gray-500">
+                          {totalQuestions} questions available
+                        </p>
+                        {availableQuestionSets.length === 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                toast.info(
+                                  "Importing question sets from YAML files..."
+                                );
+                                const { importAllQuestionSets } = await import(
+                                  "@/utils/importQuestionSets"
+                                );
+                                const results = await importAllQuestionSets();
+                                const successful = results.filter(
+                                  (r) => r.status === "success"
+                                ).length;
+                                if (successful > 0) {
+                                  toast.success(
+                                    `Imported ${successful} question set(s)`
+                                  );
+                                  // Reload question sets
+                                  const sets =
+                                    await questionSetService.getQuestionSets();
+                                  setAvailableQuestionSets(sets);
+                                  if (sets.length > 0) {
+                                    setSelectedQuestionSetId(sets[0].id);
+                                  }
+                                } else {
+                                  toast.warning(
+                                    "No new question sets imported"
+                                  );
+                                }
+                              } catch (error) {
+                                console.error("Import error:", error);
+                                toast.error("Failed to import question sets");
+                              }
+                            }}
+                          >
+                            <Upload className="mr-1 h-3 w-3" />
+                            Import YAML
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     <Button

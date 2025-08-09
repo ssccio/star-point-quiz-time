@@ -14,7 +14,7 @@ CREATE TABLE game_questions (
     correct_answer VARCHAR(1) NOT NULL CHECK (correct_answer IN ('A', 'B', 'C', 'D')),
     explanation TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Ensure each game has unique question numbers
     UNIQUE(game_id, question_number)
 );

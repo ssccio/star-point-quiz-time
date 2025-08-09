@@ -2,7 +2,7 @@
 -- Run this in your Supabase SQL Editor to upgrade existing databases
 
 -- Add is_active and last_active_at columns to players table
-ALTER TABLE players 
+ALTER TABLE players
 ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE,
 ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS idx_players_active ON players(game_id, is_active);
 
 -- Add game status 'paused' to support phone lock scenarios
 ALTER TABLE games DROP CONSTRAINT IF EXISTS games_status_check;
-ALTER TABLE games ADD CONSTRAINT games_status_check 
+ALTER TABLE games ADD CONSTRAINT games_status_check
 CHECK (status IN ('waiting', 'active', 'paused', 'finished'));
 
 -- Function to update last_active_at when players interact
