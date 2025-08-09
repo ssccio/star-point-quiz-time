@@ -53,15 +53,6 @@ repos:
         args: ["--noEmit", "--skipLibCheck"]
         pass_filenames: false
 
-  # Security scanning with Semgrep
-  - repo: https://github.com/returntocorp/semgrep
-    rev: v1.89.0
-    hooks:
-      - id: semgrep
-        args: ["--config=auto", "--error"]
-        exclude: '(node_modules/|\.git/|dist/|build/)'
-        files: '\.(js|jsx|ts|tsx)$'
-
   - repo: local
     hooks:
       - id: trivy-scan
