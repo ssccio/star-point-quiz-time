@@ -861,49 +861,15 @@ const Admin = () => {
                         <p className="text-sm text-gray-500">
                           {totalQuestions} questions available
                         </p>
-                        {availableQuestionSets.length === 0 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                toast.info(
-                                  "Importing question sets from YAML files..."
-                                );
-                                const { importAllQuestionSets } = await import(
-                                  "@/utils/importQuestionSets"
-                                );
-                                const results = await importAllQuestionSets();
-                                const successful = results.filter(
-                                  (r) => r.status === "success"
-                                ).length;
-                                if (successful > 0) {
-                                  toast.success(
-                                    `Imported ${successful} question set(s)`
-                                  );
-                                  // Reload question sets
-                                  const sets =
-                                    await questionSetService.getQuestionSets();
-                                  setAvailableQuestionSets(sets);
-                                  if (sets.length > 0) {
-                                    setSelectedQuestionSetId(sets[0].id);
-                                  }
-                                } else {
-                                  toast.warning(
-                                    "No new question sets imported"
-                                  );
-                                }
-                              } catch (error) {
-                                console.error("Import error:", error);
-                                toast.error("Failed to import question sets");
-                              }
-                            }}
-                          >
-                            <Upload className="mr-1 h-3 w-3" />
-                            Import YAML
-                          </Button>
-                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate("/admin/question-sets")}
+                        >
+                          <Upload className="mr-1 h-3 w-3" />
+                          Manage Sets
+                        </Button>
                       </div>
                     </div>
 

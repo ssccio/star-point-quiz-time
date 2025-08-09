@@ -18,6 +18,7 @@ import NewGame from "./pages/NewGame";
 import Queue from "./pages/Queue";
 import PracticeSetup from "./pages/PracticeSetup";
 import PracticeSignup from "./pages/PracticeSignup";
+import { QuestionSetManager } from "./pages/QuestionSetManager";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/results" element={<Results />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/qr-codes" element={<PrintableQR />} />
+          <Route path="/admin/question-sets" element={<QuestionSetManager />} />
           <Route path="/join" element={<TeamJoin />} />
           <Route path="/join/:gameCode" element={<JoinGame />} />
           <Route path="/join/:gameCode/:team" element={<JoinGame />} />
