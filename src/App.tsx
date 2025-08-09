@@ -11,6 +11,8 @@ import Game from "./pages/Game";
 import Results from "./pages/Results";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Host from "./pages/Host";
+import Practice from "./pages/Practice";
 import JoinGame from "./pages/JoinGame";
 import TeamJoin from "./pages/TeamJoin";
 import PrintableQR from "./pages/PrintableQR";
@@ -46,6 +48,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/host" element={<Host />} />
+          <Route path="/practice" element={<Practice />} />
           <Route path="/landing" element={<Landing />} />
           <Route path="/teams" element={<TeamSelection />} />
           <Route path="/lobby" element={<Lobby />} />
