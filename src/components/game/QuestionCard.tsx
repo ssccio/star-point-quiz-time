@@ -29,13 +29,14 @@ export const QuestionCard = ({
   hasSubmitted,
   teamColor,
 }: QuestionCardProps) => {
+  console.log("QuestionCard question data:", question);
   return (
     <Card className="p-6">
       <div className="space-y-6">
         {/* Question Text - Large font minimum 20px */}
         <div className="text-center">
           <h2 className="text-2xl font-bold leading-relaxed text-gray-900">
-            {question.question}
+            {question.question || "Question text not available"}
           </h2>
         </div>
 

@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured, isDevelopmentMode } from "./supabase";
 import type { Database } from "./supabase";
+import { questionSetService } from "./questionSetService";
 
 class GameServiceError extends Error {
   constructor(
@@ -103,8 +104,9 @@ export { isSupabaseConfigured };
 export const gameService = {
   // Host creates a new game
   async createGame(
-    hostName: string
-  ): Promise<{ game: Game; gameCode: string }> {
+    hostName: string,
+    questionSetId: string
+  ): Promise<{ game: Game; player: Player }> {
     const gameCode = generateGameCode();
     const hostId = crypto.randomUUID();
 
@@ -112,6 +114,10 @@ export const gameService = {
       // Mock implementation for development
       const gameId = crypto.randomUUID();
       const now = new Date().toISOString();
+
+      // Load questions from the question set
+      const { questions } =
+        await questionSetService.getQuestionSetData(questionSetId);
 
       const game: Game = {
         id: gameId,
@@ -123,15 +129,39 @@ export const gameService = {
         updated_at: now,
       };
 
-      // Store in mock store - no player record for host
+      // Create host player record
+      const player: Player = {
+        id: hostId,
+        name: hostName,
+        team: "host",
+        score: 0,
+      };
+
+      // Store in mock store
       mockStore.games.set(gameId, game);
       mockStore.gamesByCode.set(gameCode, gameId);
+      mockStore.players.set(hostId, {
+        id: hostId,
+        name: hostName,
+        team: "host",
+        score: 0,
+        game_id: gameId,
+        is_active: true,
+      });
 
-      return { game, gameCode };
+      // Store questions for this game
+      await this.storeGameQuestions(gameId, questions);
+
+      return { game, player };
     }
 
     // Real Supabase implementation
     const client = ensureSupabaseConfigured();
+
+    // Load questions from the question set
+    const { questions } =
+      await questionSetService.getQuestionSetData(questionSetId);
+
     const { data: game, error: gameError } = await client
       .from("games")
       .insert({
@@ -149,8 +179,31 @@ export const gameService = {
       );
     }
 
-    // Don't create a player record for the host - they're the admin, not a player
-    return { game, gameCode };
+    // Create host player record
+    const { data: player, error: playerError } = await client
+      .from("players")
+      .insert({
+        id: hostId,
+        name: hostName,
+        team: "host",
+        score: 0,
+        game_id: game.id,
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (playerError) {
+      throw new GameServiceError(
+        `Failed to create host player: ${playerError.message}`,
+        playerError.code
+      );
+    }
+
+    // Set up game questions
+    await this.storeGameQuestions(game.id, questions);
+
+    return { game, player };
   },
 
   // Player joins existing game
