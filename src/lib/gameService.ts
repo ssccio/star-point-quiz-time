@@ -136,8 +136,8 @@ export const gameService = {
       mockStore.games.set(gameId, game);
       mockStore.gamesByCode.set(gameCode, gameId);
 
-      // Store questions for this game
-      await this.storeGameQuestions(gameId, questions);
+      // Store questions for this game (randomized)
+      await this.storeGameQuestions(gameId, questions, true);
 
       return { game };
     }
@@ -169,8 +169,8 @@ export const gameService = {
       );
     }
 
-    // Set up game questions
-    await this.storeGameQuestions(game.id, questions);
+    // Set up game questions (randomized)
+    await this.storeGameQuestions(game.id, questions, true);
 
     return { game };
   },
@@ -844,27 +844,38 @@ export const gameService = {
   // Store questions for a game (called when game is created)
   async storeGameQuestions(
     gameId: string,
-    questions: Question[]
+    questions: Question[],
+    randomize: boolean = true
   ): Promise<void> {
     console.log(
       "Storing game questions for game:",
       gameId,
       "Questions count:",
-      questions.length
+      questions.length,
+      "Randomize:",
+      randomize
     );
+
+    // Randomize questions if requested
+    const questionsToStore = randomize
+      ? [...questions].sort(() => Math.random() - 0.5)
+      : questions;
+
     if (isDevelopmentMode) {
       // Mock implementation - store in memory
-      const gameQuestions: GameQuestion[] = questions.map((q, index) => ({
-        id: crypto.randomUUID(),
-        question_number: index + 1,
-        question_text: q.question,
-        option_a: q.options.A,
-        option_b: q.options.B,
-        option_c: q.options.C,
-        option_d: q.options.D,
-        correct_answer: q.correctAnswer,
-        explanation: q.explanation,
-      }));
+      const gameQuestions: GameQuestion[] = questionsToStore.map(
+        (q, index) => ({
+          id: crypto.randomUUID(),
+          question_number: index + 1,
+          question_text: q.question,
+          option_a: q.options.A,
+          option_b: q.options.B,
+          option_c: q.options.C,
+          option_d: q.options.D,
+          correct_answer: q.correctAnswer,
+          explanation: q.explanation,
+        })
+      );
       mockStore.gameQuestions.set(gameId, gameQuestions);
       return;
     }
@@ -872,7 +883,7 @@ export const gameService = {
     const client = ensureSupabaseConfigured();
 
     // Transform questions to database format
-    const gameQuestions = questions.map((q, index) => ({
+    const gameQuestions = questionsToStore.map((q, index) => ({
       game_id: gameId,
       question_number: index + 1,
       question_text: q.question,

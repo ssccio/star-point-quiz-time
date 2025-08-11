@@ -190,6 +190,23 @@ const Admin = () => {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
+        // Check if we have a database question set selected
+        if (selectedQuestionSetId && availableQuestionSets.length > 0) {
+          const selectedSet = availableQuestionSets.find(
+            (set) => set.id === selectedQuestionSetId
+          );
+          if (selectedSet) {
+            const questionSetData = await questionSetService.getQuestionSet(
+              selectedQuestionSetId
+            );
+            const questions = questionSetData?.questions || [];
+            setTotalQuestions(questions.length);
+            setLoadedQuestions(questions);
+            return;
+          }
+        }
+
+        // Fallback to YAML files
         const { questions } = await loadQuestionsFromYAML(
           `${selectedQuestionSet}.yaml`
         );
@@ -211,7 +228,7 @@ const Admin = () => {
     };
 
     loadQuestions();
-  }, [selectedQuestionSet]);
+  }, [selectedQuestionSet, selectedQuestionSetId, availableQuestionSets]);
 
   const loadGameData = useCallback(async () => {
     setAdminState((prev) => ({ ...prev, loading: true, error: null }));
@@ -530,7 +547,8 @@ const Admin = () => {
           if (!isDevMode) {
             await gameService.storeGameQuestions(
               game.id,
-              questionData.questions
+              questionData.questions,
+              false // Questions already randomized by loadDefaultQuestions
             );
             console.log("Questions stored from YAML fallback");
           } else {

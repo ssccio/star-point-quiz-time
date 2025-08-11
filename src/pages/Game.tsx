@@ -191,7 +191,7 @@ const Game = () => {
           <AnswerReveal
             currentQuestion={gameState.currentQuestion}
             selectedAnswer={gameState.selectedAnswer}
-            scores={undefined} // Don't show team scores during multiplayer gameplay
+            scores={gameState.scores} // Show real-time team scores
             currentTeam={teamId}
             currentQuestionIndex={gameState.currentQuestionIndex}
             totalQuestions={gameState.questions.length}
