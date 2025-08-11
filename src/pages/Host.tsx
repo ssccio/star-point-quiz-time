@@ -119,7 +119,7 @@ const Host = () => {
 
     setIsStarting(true);
     try {
-      await gameService.updateGameStatus(gameId, "active");
+      await gameService.startGame(gameId);
       toast.success("Game started!");
       navigate("/game", {
         state: {
