@@ -116,8 +116,10 @@ export const gameService = {
       const now = new Date().toISOString();
 
       // Load questions from the question set
+      console.log("Loading questions for question set:", questionSetId);
       const { questions } =
         await questionSetService.getQuestionSetData(questionSetId);
+      console.log("Loaded questions:", questions.length, questions);
 
       const game: Game = {
         id: gameId,
@@ -159,8 +161,10 @@ export const gameService = {
     const client = ensureSupabaseConfigured();
 
     // Load questions from the question set
+    console.log("Loading questions for question set:", questionSetId);
     const { questions } =
       await questionSetService.getQuestionSetData(questionSetId);
+    console.log("Loaded questions:", questions.length, questions);
 
     const { data: game, error: gameError } = await client
       .from("games")
@@ -877,6 +881,12 @@ export const gameService = {
     gameId: string,
     questions: Question[]
   ): Promise<void> {
+    console.log(
+      "Storing game questions for game:",
+      gameId,
+      "Questions count:",
+      questions.length
+    );
     if (isDevelopmentMode) {
       // Mock implementation - store in memory
       const gameQuestions: GameQuestion[] = questions.map((q, index) => ({
@@ -909,9 +919,15 @@ export const gameService = {
       explanation: q.explanation,
     }));
 
+    console.log(
+      "Inserting game questions into database:",
+      gameQuestions.length,
+      gameQuestions[0]
+    );
     const { error } = await client.from("game_questions").insert(gameQuestions);
 
     if (error) {
+      console.error("Failed to insert game questions:", error);
       console.error("Database error storing questions:", error);
       throw new GameServiceError(
         `Failed to store game questions: ${error.message || error.code || "Unknown database error"}`,
