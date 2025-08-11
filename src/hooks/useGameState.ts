@@ -84,6 +84,32 @@ export const useGameState = (
         return;
       }
 
+      // Check for game status changes (most critical for phone lock scenarios)
+      if (game.status === "active") {
+        console.log("Game is active - ensuring we're in the game");
+        // If we're still on waiting/lobby screen but game is active, navigate to game
+        if (
+          window.location.pathname === "/lobby" ||
+          window.location.pathname === "/team-join"
+        ) {
+          console.log("Redirecting from lobby to active game");
+          navigate("/game", {
+            state: { playerName, team: teamId },
+          });
+          return;
+        }
+      } else if (game.status === "finished") {
+        console.log("Game finished - redirecting to results");
+        navigate("/results", {
+          state: {
+            playerName,
+            team: teamId,
+            finalScores: scores,
+          },
+        });
+        return;
+      }
+
       if (game.current_question !== currentQuestionIndex + 1) {
         console.log(
           "Syncing question from",
@@ -313,6 +339,25 @@ export const useGameState = (
     scores,
     syncGameState,
   ]);
+
+  // Periodic sync check for phone lock scenarios - only when on lobby/team-join pages
+  useEffect(() => {
+    if (isPracticeMode || !gameId) return;
+
+    const currentPath = window.location.pathname;
+    if (currentPath !== "/lobby" && currentPath !== "/team-join") return;
+
+    console.log("Setting up periodic sync check for lobby/team-join page");
+    const interval = setInterval(() => {
+      console.log("Periodic sync check - verifying game status");
+      syncGameState();
+    }, 5000); // Check every 5 seconds
+
+    return () => {
+      console.log("Clearing periodic sync check");
+      clearInterval(interval);
+    };
+  }, [isPracticeMode, gameId, syncGameState]);
 
   // Subscribe to real-time answer updates for teammates (multiplayer only)
   useEffect(() => {

@@ -129,19 +129,26 @@ export const useSupabaseSubscription = (
         reconnectTimeoutRef.current = null;
       }
 
-      // Check if we need to reconnect
+      // Always trigger reconnection callback for state sync, even if subscription appears active
+      // This is crucial for phone lock scenarios where subscription stays active but misses updates
+      console.log(`${debugLabel}: Forcing state sync after visibility change`);
+      onReconnected?.();
+
+      // Check if we need to reconnect the subscription itself
       if (
         !subscriptionRef.current.isActive ||
         subscriptionRef.current.lastStatus === "CLOSED" ||
         subscriptionRef.current.lastStatus === "CHANNEL_ERROR"
       ) {
-        console.log(`${debugLabel}: Reconnecting after visibility change`);
+        console.log(
+          `${debugLabel}: Reconnecting subscription after visibility change`
+        );
         createSubscription();
       }
     } else {
       console.log(`${debugLabel}: App went to background`);
     }
-  }, [createSubscription, debugLabel]);
+  }, [createSubscription, debugLabel, onReconnected]);
 
   // Set up subscription and visibility listener
   useEffect(() => {
