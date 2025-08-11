@@ -100,9 +100,9 @@ const Host = () => {
         selectedSetId
       );
 
-      setGameCode(game.code);
+      setGameCode(game.game_code);
       setGameId(game.id);
-      toast.success(`Game created! Code: ${game.code}`);
+      toast.success(`Game created! Code: ${game.game_code}`);
     } catch (error) {
       console.error("Error creating game:", error);
       toast.error("Failed to create game");

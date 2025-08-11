@@ -20,8 +20,10 @@ export interface Player {
 
 export interface Game {
   id: string;
-  code: string;
+  game_code: string; // Changed from 'code' to 'game_code' to match database
   status: "waiting" | "active" | "finished";
-  host_name: string;
+  host_id: string; // Added missing field from database
+  current_question?: number; // Added missing field from database
   created_at: string;
+  updated_at?: string; // Added missing field from database
 }
