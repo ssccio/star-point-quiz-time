@@ -116,11 +116,11 @@ export const useSupabaseSubscription = (
     ...deps,
   ]);
 
-  // Handle visibility changes (phone lock/unlock)
-  const handleVisibilityChange = useCallback(() => {
-    if (document.visibilityState === "visible") {
+  // Handle multiple unlock detection events (phone lock/unlock)
+  const handleUnlockDetected = useCallback(
+    (eventType: string) => {
       console.log(
-        `${debugLabel}: App became visible - checking connection health`
+        `${debugLabel}: Phone unlock detected via ${eventType} - triggering recovery`
       );
 
       // Clear any pending reconnection attempts
@@ -131,29 +131,62 @@ export const useSupabaseSubscription = (
 
       // Always trigger reconnection callback for state sync, even if subscription appears active
       // This is crucial for phone lock scenarios where subscription stays active but misses updates
-      console.log(`${debugLabel}: Forcing state sync after visibility change`);
+      console.log(`${debugLabel}: Forcing state sync after unlock detection`);
       onReconnected?.();
 
       // For phone lock scenarios, always recreate subscription after visibility change
       // This is more aggressive but necessary since subscriptions can appear active but be dead
       console.log(
-        `${debugLabel}: Aggressively reconnecting subscription after phone lock/unlock`
+        `${debugLabel}: Aggressively reconnecting subscription after phone unlock`
       );
       createSubscription();
+    },
+    [createSubscription, debugLabel, onReconnected]
+  );
+
+  // Handle visibility changes (phone lock/unlock)
+  const handleVisibilityChange = useCallback(() => {
+    if (document.visibilityState === "visible") {
+      handleUnlockDetected("visibilitychange");
     } else {
       console.log(`${debugLabel}: App went to background`);
     }
-  }, [createSubscription, debugLabel, onReconnected]);
+  }, [handleUnlockDetected, debugLabel]);
 
-  // Set up subscription and visibility listener
+  // Set up subscription and multiple unlock detection listeners
   useEffect(() => {
     createSubscription();
 
-    // Listen for visibility changes (phone lock/unlock, tab switching)
+    // Multiple event listeners to catch phone unlock more reliably
+    const handleFocus = () => handleUnlockDetected("focus");
+    const handlePageShow = () => handleUnlockDetected("pageshow");
+    const handleOnline = () => handleUnlockDetected("online");
+    const handleTouchStart = () => {
+      // Only trigger once per session to avoid spam
+      handleUnlockDetected("touchstart");
+      window.removeEventListener("touchstart", handleTouchStart);
+    };
+
+    // Primary visibility change listener
     document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Additional unlock detection events
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+      once: true,
+    });
+
+    console.log(`${debugLabel}: Set up multiple unlock detection listeners`);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("touchstart", handleTouchStart);
 
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
@@ -167,7 +200,12 @@ export const useSupabaseSubscription = (
         }
       }
     };
-  }, [createSubscription, handleVisibilityChange]);
+  }, [
+    createSubscription,
+    handleVisibilityChange,
+    handleUnlockDetected,
+    debugLabel,
+  ]);
 
   // Return subscription health info
   return {

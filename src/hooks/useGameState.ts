@@ -403,10 +403,27 @@ export const useGameState = (
     if (isPracticeMode || !gameId) return;
 
     console.log("Setting up periodic sync check for phone lock recovery");
+
+    // More aggressive polling during waiting period to catch game start
+    let checkInterval = 1500; // Default: every 1.5 seconds for active games
+
+    // Check if we're likely in waiting period by looking at current path and game status
+    const isWaitingContext =
+      window.location.pathname === "/lobby" ||
+      window.location.pathname === "/team-join";
+
+    if (isWaitingContext) {
+      checkInterval = 1000; // More frequent during waiting period: every 1 second
+      console.log("Using aggressive 1-second polling for waiting period");
+    }
+
     const interval = setInterval(() => {
-      console.log("Periodic sync check - verifying game status");
+      const currentPath = window.location.pathname;
+      console.log(
+        `Periodic sync check (${checkInterval}ms interval) - path: ${currentPath}`
+      );
       syncGameState();
-    }, 3000); // Check every 3 seconds for more responsive recovery
+    }, checkInterval);
 
     return () => {
       console.log("Clearing periodic sync check");
