@@ -1,11 +1,43 @@
 {
   "buildInfo": {
-    "generatedAt": "2025-08-11T18:35:05.767Z",
+    "generatedAt": "2025-08-11T19:43:38.294Z",
     "totalCommits": 50,
-    "latestCommit": "685aeaacb15cd09996a9cfe5ba0c90a2d9f1f35b",
+    "latestCommit": "8aa18fd8880c2477cfff5043165e4fbb8c285c2e",
     "repository": "ssccio/star-point-quiz-time"
   },
   "commits": [
+    {
+      "hash": "8aa18fd8880c2477cfff5043165e4fbb8c285c2e",
+      "shortHash": "8aa18fd",
+      "message": "fix(game): resolve question count, real-time scores, and randomization issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754940925,
+      "date": "2025-08-11T19:35:25.000Z"
+    },
+    {
+      "hash": "b981dc7d4658598b9eb2edc7a035367ca59b23e8",
+      "shortHash": "b981dc7",
+      "message": "fix: resolve scoring logic and host navigation issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754939127,
+      "date": "2025-08-11T19:05:27.000Z"
+    },
+    {
+      "hash": "f1693ba7d88b00e691062b8a14994df42b1a4b63",
+      "shortHash": "f1693ba",
+      "message": "fix(game): resolve host player creation constraint violation",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754938184,
+      "date": "2025-08-11T18:49:44.000Z"
+    },
+    {
+      "hash": "b7a2f451a0daf2ee9b3315f80b3a36cf976069b9",
+      "shortHash": "b7a2f45",
+      "message": "feat: implement comprehensive changelog system with build-time generation",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754937873,
+      "date": "2025-08-11T18:44:33.000Z"
+    },
     {
       "hash": "685aeaacb15cd09996a9cfe5ba0c90a2d9f1f35b",
       "shortHash": "685aeaa",
@@ -373,38 +405,6 @@
       "author": "Ken Trenkelbach",
       "timestamp": 1753485578,
       "date": "2025-07-25T23:19:38.000Z"
-    },
-    {
-      "hash": "1aadb3ff810b364c13a0a154b233ad84db9ae837",
-      "shortHash": "1aadb3f",
-      "message": "Fix QR code flow and admin game controls",
-      "author": "Ken Trenkelbach",
-      "timestamp": 1753482791,
-      "date": "2025-07-25T22:33:11.000Z"
-    },
-    {
-      "hash": "469ea478228aee0522fae331629452f077d0b7ef",
-      "shortHash": "469ea47",
-      "message": "Transform practice mode into educational experience and implement YAML question system",
-      "author": "Ken Trenkelbach",
-      "timestamp": 1753407074,
-      "date": "2025-07-25T01:31:14.000Z"
-    },
-    {
-      "hash": "5d8f84dbd205cac0208d1f863bbbfffd4b8a0d37",
-      "shortHash": "5d8f84d",
-      "message": "Optimize QR code generation performance to prevent browser lockups",
-      "author": "Ken Trenkelbach",
-      "timestamp": 1753401208,
-      "date": "2025-07-24T23:53:28.000Z"
-    },
-    {
-      "hash": "1e5cd9b56c52a773742f001cbd9bc16522222051",
-      "shortHash": "1e5cd9b",
-      "message": "Add comprehensive development roadmap for Eastern Star educational platform",
-      "author": "Ken Trenkelbach",
-      "timestamp": 1753150425,
-      "date": "2025-07-22T02:13:45.000Z"
     }
   ]
 }

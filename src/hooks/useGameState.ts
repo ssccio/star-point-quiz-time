@@ -51,6 +51,7 @@ export const useGameState = (
     electa: 0,
   });
   const [teamMates, setTeamMates] = useState<TeamMate[]>([]);
+  const [playerScore, setPlayerScore] = useState(0);
   const [questions, setQuestions] = useState(sampleQuestions);
   const [questionMetadata, setQuestionMetadata] = useState<{
     title: string;
@@ -327,6 +328,29 @@ export const useGameState = (
             hasAnswered: false, // Will be updated by answer subscription
           }))
         );
+
+        // Calculate team scores from all players
+        const teamScores: TeamScores = {
+          adah: 0,
+          ruth: 0,
+          esther: 0,
+          martha: 0,
+          electa: 0,
+        };
+
+        players.forEach((player) => {
+          if (player.team in teamScores) {
+            teamScores[player.team as keyof TeamScores] += player.score || 0;
+          }
+        });
+
+        setScores(teamScores);
+
+        // Update current player's score
+        const currentPlayer = players.find((p) => p.name === playerName);
+        if (currentPlayer) {
+          setPlayerScore(currentPlayer.score || 0);
+        }
       } catch (error) {
         console.error("Failed to load teammates:", error);
       }
@@ -355,10 +379,50 @@ export const useGameState = (
     loadTeammates();
     const answerSub = subscribeToAnswers();
 
+    // Subscribe to player score updates
+    const playerSubscription = gameService.subscribeToPlayers(
+      gameId,
+      (players) => {
+        // Update team scores when players change
+        const teamScores: TeamScores = {
+          adah: 0,
+          ruth: 0,
+          esther: 0,
+          martha: 0,
+          electa: 0,
+        };
+
+        players.forEach((player) => {
+          if (player.team in teamScores) {
+            teamScores[player.team as keyof TeamScores] += player.score || 0;
+          }
+        });
+
+        setScores(teamScores);
+
+        // Update current player's score
+        const currentPlayer = players.find((p) => p.name === playerName);
+        if (currentPlayer) {
+          setPlayerScore(currentPlayer.score || 0);
+        }
+
+        // Update teammates list
+        const teamPlayers = players.filter((p) => p.team === teamId);
+        setTeamMates((prev) =>
+          teamPlayers.map((p) => ({
+            name: p.name,
+            hasAnswered:
+              prev.find((mate) => mate.name === p.name)?.hasAnswered || false,
+          }))
+        );
+      }
+    );
+
     return () => {
       answerSub.then((sub) => sub?.unsubscribe());
+      playerSubscription?.unsubscribe();
     };
-  }, [isPracticeMode, gameId, teamId, currentQuestionIndex]);
+  }, [isPracticeMode, gameId, teamId, currentQuestionIndex, playerName]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -549,6 +613,7 @@ export const useGameState = (
     selectedAnswer,
     hasSubmitted,
     scores,
+    playerScore,
     teamMates,
     currentQuestion,
     questions,

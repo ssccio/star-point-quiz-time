@@ -103,7 +103,7 @@ const Game = () => {
                     Math.max(gameState.practiceStats.totalAnswered, 1)) *
                     100
                 )
-              : 0 // For multiplayer games, don't show team scores during gameplay
+              : gameState.playerScore // Show player's personal score in multiplayer
           }
         />
 
