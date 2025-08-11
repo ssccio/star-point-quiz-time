@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Square, SkipForward } from "lucide-react";
+import { Play, Pause, Square, SkipForward, Loader2 } from "lucide-react";
 
 type GameStatus = "waiting" | "active" | "paused" | "finished";
 
@@ -9,7 +9,8 @@ interface GameControlsProps {
   onStartGame: () => void;
   onPauseGame: () => void;
   onStopGame: () => void;
-  onNextQuestion: () => void;
+  onNextQuestion: (forceSkip?: boolean) => void;
+  isAdvancingQuestion?: boolean;
 }
 
 export const GameControls = ({
@@ -18,7 +19,12 @@ export const GameControls = ({
   onPauseGame,
   onStopGame,
   onNextQuestion,
+  isAdvancingQuestion = false,
 }: GameControlsProps) => {
+  const handleNextQuestionClick = (event: React.MouseEvent) => {
+    const forceSkip = event.shiftKey; // Hold Shift for confirmation dialog
+    onNextQuestion(forceSkip);
+  };
   return (
     <Card className="p-6">
       <h2 className="mb-4 text-xl font-bold text-gray-900">Game Controls</h2>
@@ -48,13 +54,29 @@ export const GameControls = ({
           Stop Game
         </Button>
         <Button
-          onClick={onNextQuestion}
-          disabled={gameStatus !== "active"}
-          className="min-h-[60px] bg-blue-600 hover:bg-blue-700"
+          onClick={handleNextQuestionClick}
+          disabled={gameStatus !== "active" || isAdvancingQuestion}
+          className="min-h-[60px] bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+          title="Click to advance, Shift+Click to force skip with confirmation"
         >
-          <SkipForward className="mr-2 h-5 w-5" />
-          Next Question
+          {isAdvancingQuestion ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <SkipForward className="mr-2 h-5 w-5" />
+          )}
+          {isAdvancingQuestion ? "Advancing..." : "Next Question"}
         </Button>
+      </div>
+
+      {/* Help text */}
+      <div className="mt-4 text-center text-sm text-gray-500">
+        <p>
+          💡 <strong>Tip:</strong> Hold{" "}
+          <kbd className="rounded border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800">
+            Shift
+          </kbd>{" "}
+          while clicking "Next Question" to force skip with confirmation
+        </p>
       </div>
     </Card>
   );

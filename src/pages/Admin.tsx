@@ -380,18 +380,33 @@ const Admin = () => {
     }
   };
 
-  const handleNextQuestion = async () => {
-    if (!adminState.selectedGame) return;
+  const [isAdvancingQuestion, setIsAdvancingQuestion] = useState(false);
 
+  const handleNextQuestion = async (forceSkip: boolean = false) => {
+    if (!adminState.selectedGame || isAdvancingQuestion) return;
+
+    // Optional confirmation for intentional question skipping
+    if (forceSkip) {
+      const confirmed = confirm(
+        "Are you sure you want to skip to the next question? This will advance all players regardless of their current state."
+      );
+      if (!confirmed) return;
+    }
+
+    setIsAdvancingQuestion(true);
     try {
       await gameService.nextQuestion(adminState.selectedGame.id);
-      toast.success("Advanced to next question");
+      toast.success(
+        forceSkip ? "Skipped to next question" : "Advanced to next question"
+      );
     } catch (error) {
       setAdminState((prev) => ({
         ...prev,
         error:
           error instanceof Error ? error.message : "Failed to advance question",
       }));
+    } finally {
+      setIsAdvancingQuestion(false);
     }
   };
 
@@ -1026,6 +1041,7 @@ const Admin = () => {
             onPauseGame={handlePauseGame}
             onStopGame={handleStopGame}
             onNextQuestion={handleNextQuestion}
+            isAdvancingQuestion={isAdvancingQuestion}
           />
         )}
 

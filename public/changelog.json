@@ -1,11 +1,19 @@
 {
   "buildInfo": {
-    "generatedAt": "2025-08-11T19:43:38.294Z",
+    "generatedAt": "2025-08-11T19:53:05.506Z",
     "totalCommits": 50,
-    "latestCommit": "8aa18fd8880c2477cfff5043165e4fbb8c285c2e",
+    "latestCommit": "6b6a2d9ad11b055fd721a9aaa4baba7316db0d6e",
     "repository": "ssccio/star-point-quiz-time"
   },
   "commits": [
+    {
+      "hash": "6b6a2d9ad11b055fd721a9aaa4baba7316db0d6e",
+      "shortHash": "6b6a2d9",
+      "message": "fix(scoring): implement real-time team scores and player personal scores",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754941497,
+      "date": "2025-08-11T19:44:57.000Z"
+    },
     {
       "hash": "8aa18fd8880c2477cfff5043165e4fbb8c285c2e",
       "shortHash": "8aa18fd",
@@ -397,14 +405,6 @@
       "author": "Ken Trenkelbach",
       "timestamp": 1753487079,
       "date": "2025-07-25T23:44:39.000Z"
-    },
-    {
-      "hash": "060da1148d09545acaaffb1af8de248b5842c83d",
-      "shortHash": "060da11",
-      "message": "Fix Start Game button for active games in production",
-      "author": "Ken Trenkelbach",
-      "timestamp": 1753485578,
-      "date": "2025-07-25T23:19:38.000Z"
     }
   ]
 }
