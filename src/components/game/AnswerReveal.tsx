@@ -121,7 +121,8 @@ export const AnswerReveal = ({
                   📚 Great learning opportunity!
                 </div>
               )
-            ) : selectedAnswer === currentQuestion.correctAnswer ? (
+            ) : selectedAnswer ===
+              currentQuestion.options[currentQuestion.correctAnswer] ? (
               <div className="text-xl font-bold text-green-600">
                 ✓ Correct! +20 points
               </div>

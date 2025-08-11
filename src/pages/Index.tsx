@@ -103,7 +103,7 @@ const Index = () => {
         </Card>
 
         {/* Bottom Links */}
-        <div className="flex justify-center space-x-6 text-sm">
+        <div className="flex justify-center space-x-4 text-sm">
           <button
             onClick={() => navigate("/practice")}
             className="flex items-center text-gray-600 transition-colors hover:text-indigo-600"
@@ -112,7 +112,7 @@ const Index = () => {
             Practice Mode
           </button>
           <button
-            onClick={() => navigate("/host")}
+            onClick={() => navigate("/admin")}
             className="flex items-center text-gray-600 transition-colors hover:text-indigo-600"
           >
             <Trophy className="mr-1 h-4 w-4" />

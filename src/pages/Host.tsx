@@ -95,10 +95,7 @@ const Host = () => {
 
     setIsCreating(true);
     try {
-      const { game, player } = await gameService.createGame(
-        hostName,
-        selectedSetId
-      );
+      const { game } = await gameService.createGame(hostName, selectedSetId);
 
       setGameCode(game.game_code);
       setGameId(game.id);
