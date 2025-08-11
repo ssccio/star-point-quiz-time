@@ -372,6 +372,31 @@ const Admin = () => {
           : null,
         error: null,
       }));
+
+      // Show "Return to Game Management" option after stopping
+      setTimeout(() => {
+        const shouldReturn = confirm(
+          "Game has been stopped successfully. Would you like to return to the game management screen?"
+        );
+        if (shouldReturn) {
+          // Clear current game and return to management screen
+          setAdminState((prev) => ({
+            ...prev,
+            selectedGame: null,
+            players: [],
+            teamData: {
+              adah: { count: 0, connected: 0, names: [], scores: 0 },
+              ruth: { count: 0, connected: 0, names: [], scores: 0 },
+              esther: { count: 0, connected: 0, names: [], scores: 0 },
+              martha: { count: 0, connected: 0, names: [], scores: 0 },
+              electa: { count: 0, connected: 0, names: [], scores: 0 },
+            },
+            error: null,
+          }));
+          setGameCode("");
+          setShowCreateGame(false); // Show the connect to existing game screen
+        }
+      }, 1000); // Small delay to let the success toast show first
     } catch (error) {
       setAdminState((prev) => ({
         ...prev,
