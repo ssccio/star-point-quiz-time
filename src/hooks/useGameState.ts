@@ -376,7 +376,9 @@ export const useGameState = (
 
     // Track practice stats if in practice mode
     if (isPracticeMode && currentQuestion) {
-      const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+      const isCorrect =
+        selectedAnswer ===
+        currentQuestion.options[currentQuestion.correctAnswer];
       setPracticeStats((prev) => {
         const newStats = {
           correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0),
@@ -407,7 +409,9 @@ export const useGameState = (
     } else if (gameId && playerId && currentQuestion) {
       // Submit answer to database for multiplayer mode
       try {
-        const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+        const isCorrect =
+          selectedAnswer ===
+          currentQuestion.options[currentQuestion.correctAnswer];
         await gameService.submitAnswer(
           gameId,
           playerId,

@@ -5,9 +5,14 @@ import { TeamScores } from "@/hooks/useGameState";
 
 interface Question {
   id: string;
-  text: string;
-  options: string[];
-  correctAnswer: string;
+  question: string;
+  options: {
+    A: string;
+    B: string;
+    C: string;
+    D: string;
+  };
+  correctAnswer: "A" | "B" | "C" | "D";
   explanation: string;
 }
 
@@ -51,49 +56,51 @@ export const AnswerReveal = ({
 
           {/* Show all answers with correct/incorrect highlighting */}
           <div className="space-y-3">
-            {currentQuestion.options.map((option, index) => {
-              const letter = String.fromCharCode(65 + index);
-              const isCorrect = option === currentQuestion.correctAnswer;
-              const wasSelected = option === selectedAnswer;
+            {Object.entries(currentQuestion.options).map(
+              ([letter, option], index) => {
+                // letter is now from the object key (A, B, C, D)
+                const isCorrect = letter === currentQuestion.correctAnswer;
+                const wasSelected = option === selectedAnswer;
 
-              return (
-                <div
-                  key={option}
-                  className={`rounded-lg border-2 p-3 ${
-                    isCorrect
-                      ? "border-green-500 bg-green-50 text-green-800"
-                      : wasSelected
-                        ? "border-orange-400 bg-orange-50 text-orange-800"
-                        : "border-gray-200 bg-gray-50 text-gray-600"
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <span
-                      className={`rounded px-2 py-1 font-bold ${
-                        isCorrect
-                          ? "bg-green-200"
-                          : wasSelected
-                            ? "bg-orange-200"
-                            : "bg-gray-200"
-                      }`}
-                    >
-                      {letter}
-                    </span>
-                    <span className="text-lg">{option}</span>
-                    {isCorrect && (
-                      <span className="font-bold text-green-600">
-                        ✓ CORRECT
+                return (
+                  <div
+                    key={option}
+                    className={`rounded-lg border-2 p-3 ${
+                      isCorrect
+                        ? "border-green-500 bg-green-50 text-green-800"
+                        : wasSelected
+                          ? "border-orange-400 bg-orange-50 text-orange-800"
+                          : "border-gray-200 bg-gray-50 text-gray-600"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span
+                        className={`rounded px-2 py-1 font-bold ${
+                          isCorrect
+                            ? "bg-green-200"
+                            : wasSelected
+                              ? "bg-orange-200"
+                              : "bg-gray-200"
+                        }`}
+                      >
+                        {letter}
                       </span>
-                    )}
-                    {wasSelected && !isCorrect && (
-                      <span className="font-bold text-orange-600">
-                        → YOUR ANSWER
-                      </span>
-                    )}
+                      <span className="text-lg">{option}</span>
+                      {isCorrect && (
+                        <span className="font-bold text-green-600">
+                          ✓ CORRECT
+                        </span>
+                      )}
+                      {wasSelected && !isCorrect && (
+                        <span className="font-bold text-orange-600">
+                          → YOUR ANSWER
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              }
+            )}
           </div>
 
           <div className="mt-6 rounded-lg bg-blue-50 p-4">
@@ -104,7 +111,8 @@ export const AnswerReveal = ({
           {/* Practice vs Competition feedback */}
           <div className="text-center">
             {isPracticeMode ? (
-              selectedAnswer === currentQuestion.correctAnswer ? (
+              selectedAnswer ===
+              currentQuestion.options[currentQuestion.correctAnswer] ? (
                 <div className="text-xl font-bold text-green-600">
                   🎉 Excellent! You got it right!
                 </div>

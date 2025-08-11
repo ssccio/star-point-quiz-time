@@ -6,9 +6,16 @@ import { gameService } from "@/lib/gameService";
 import { TEAMS, TEAM_COLORS } from "@/utils/constants";
 
 interface Question {
-  text: string;
-  options: string[];
-  correctAnswer: string;
+  id: string;
+  question: string;
+  options: {
+    A: string;
+    B: string;
+    C: string;
+    D: string;
+  };
+  correctAnswer: "A" | "B" | "C" | "D";
+  explanation: string;
 }
 
 interface QuestionAnswer {
@@ -133,47 +140,49 @@ export const QuestionDisplay = ({
               Question {currentQuestion + 1}
             </div>
             <div className="text-lg font-medium text-gray-900">
-              {question?.text || "No question loaded"}
+              {question?.question || "No question loaded"}
             </div>
           </div>
 
           {question?.options && (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {question.options.map((option, index) => {
-                const letter = String.fromCharCode(65 + index);
-                const isCorrect = option === question.correctAnswer;
-                const answerCount = answers.filter(
-                  (a) => a.answer === option
-                ).length;
+              {Object.entries(question.options).map(
+                ([letter, option], index) => {
+                  // letter is now from the object key (A, B, C, D)
+                  const isCorrect = letter === question.correctAnswer;
+                  const answerCount = answers.filter(
+                    (a) => a.answer === option
+                  ).length;
 
-                return (
-                  <div
-                    key={index}
-                    className={`rounded-lg border p-3 ${
-                      isCorrect
-                        ? "border-green-200 bg-green-50"
-                        : "border-gray-200 bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="mr-2 font-bold">{letter}.</span>
-                        <span>{option}</span>
-                        {isCorrect && (
-                          <span className="ml-2 font-bold text-green-600">
-                            ✓
-                          </span>
+                  return (
+                    <div
+                      key={index}
+                      className={`rounded-lg border p-3 ${
+                        isCorrect
+                          ? "border-green-200 bg-green-50"
+                          : "border-gray-200 bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="mr-2 font-bold">{letter}.</span>
+                          <span>{option}</span>
+                          {isCorrect && (
+                            <span className="ml-2 font-bold text-green-600">
+                              ✓
+                            </span>
+                          )}
+                        </div>
+                        {gameId && answerCount > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {answerCount}
+                          </Badge>
                         )}
                       </div>
-                      {gameId && answerCount > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          {answerCount}
-                        </Badge>
-                      )}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
             </div>
           )}
         </div>

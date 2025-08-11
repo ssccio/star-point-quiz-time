@@ -3,9 +3,14 @@ import { Button } from "@/components/ui/button";
 
 interface Question {
   id: string;
-  text: string;
-  options: string[];
-  correctAnswer: string;
+  question: string;
+  options: {
+    A: string;
+    B: string;
+    C: string;
+    D: string;
+  };
+  correctAnswer: "A" | "B" | "C" | "D";
   explanation: string;
 }
 
@@ -30,14 +35,14 @@ export const QuestionCard = ({
         {/* Question Text - Large font minimum 20px */}
         <div className="text-center">
           <h2 className="text-2xl font-bold leading-relaxed text-gray-900">
-            {question.text}
+            {question.question}
           </h2>
         </div>
 
         {/* Answer Options */}
         <div className="space-y-3">
-          {question.options.map((option, index) => {
-            const letter = String.fromCharCode(65 + index); // A, B, C, D
+          {Object.entries(question.options).map(([letter, option], index) => {
+            // letter is now from the object key (A, B, C, D)
             const isSelected = selectedAnswer === option;
 
             return (
