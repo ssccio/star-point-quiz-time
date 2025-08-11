@@ -11,6 +11,7 @@ interface GameControlsProps {
   onStopGame: () => void;
   onNextQuestion: (forceSkip?: boolean) => void;
   isAdvancingQuestion?: boolean;
+  questionCooldownTime?: number;
 }
 
 export const GameControls = ({
@@ -20,6 +21,7 @@ export const GameControls = ({
   onStopGame,
   onNextQuestion,
   isAdvancingQuestion = false,
+  questionCooldownTime = 0,
 }: GameControlsProps) => {
   const handleNextQuestionClick = (event: React.MouseEvent) => {
     const forceSkip = event.shiftKey; // Hold Shift for confirmation dialog
@@ -55,27 +57,40 @@ export const GameControls = ({
         </Button>
         <Button
           onClick={handleNextQuestionClick}
-          disabled={gameStatus !== "active" || isAdvancingQuestion}
+          disabled={
+            gameStatus !== "active" ||
+            isAdvancingQuestion ||
+            questionCooldownTime > 0
+          }
           className="min-h-[60px] bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-          title="Click to advance, Shift+Click to force skip with confirmation"
+          title={
+            questionCooldownTime > 0
+              ? `Question cooldown: ${questionCooldownTime}s remaining. Shift+Click to force skip.`
+              : "Click to advance, Shift+Click to force skip with confirmation"
+          }
         >
           {isAdvancingQuestion ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           ) : (
             <SkipForward className="mr-2 h-5 w-5" />
           )}
-          {isAdvancingQuestion ? "Advancing..." : "Next Question"}
+          {isAdvancingQuestion
+            ? "Advancing..."
+            : questionCooldownTime > 0
+              ? `Next Question (${questionCooldownTime}s)`
+              : "Next Question"}
         </Button>
       </div>
 
       {/* Help text */}
       <div className="mt-4 text-center text-sm text-gray-500">
         <p>
-          💡 <strong>Tip:</strong> Hold{" "}
+          💡 <strong>Tip:</strong> "Next Question" has a 60-second cooldown to
+          prevent accidental clicks. Hold{" "}
           <kbd className="rounded border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800">
             Shift
           </kbd>{" "}
-          while clicking "Next Question" to force skip with confirmation
+          while clicking to force skip with confirmation
         </p>
       </div>
     </Card>

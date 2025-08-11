@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSupabaseSubscription } from "@/hooks/useSupabaseSubscription";
 import { useAdminSubscriptions } from "@/hooks/useAdminSubscriptions";
@@ -406,21 +406,71 @@ const Admin = () => {
   };
 
   const [isAdvancingQuestion, setIsAdvancingQuestion] = useState(false);
+  const [questionCooldownTime, setQuestionCooldownTime] = useState(0);
+  const isAdvancingRef = useRef(false);
+  const cooldownTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Start cooldown timer after advancing question
+  const startQuestionCooldown = useCallback(() => {
+    setQuestionCooldownTime(60);
+
+    const updateCooldown = () => {
+      setQuestionCooldownTime((prev) => {
+        if (prev <= 1) {
+          if (cooldownTimerRef.current) {
+            clearInterval(cooldownTimerRef.current);
+            cooldownTimerRef.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    };
+
+    cooldownTimerRef.current = setInterval(updateCooldown, 1000);
+  }, []);
+
+  // Cleanup cooldown timer on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) {
+        clearInterval(cooldownTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleNextQuestion = async (forceSkip: boolean = false) => {
-    if (!adminState.selectedGame || isAdvancingQuestion) return;
+    if (
+      !adminState.selectedGame ||
+      isAdvancingQuestion ||
+      isAdvancingRef.current ||
+      (questionCooldownTime > 0 && !forceSkip)
+    )
+      return;
 
     // Optional confirmation for intentional question skipping
     if (forceSkip) {
-      const confirmed = confirm(
-        "Are you sure you want to skip to the next question? This will advance all players regardless of their current state."
-      );
+      const skipMessage =
+        questionCooldownTime > 0
+          ? `The question was just advanced ${60 - questionCooldownTime} seconds ago. Are you sure you want to force skip to the next question? This will advance all players regardless of their current state.`
+          : "Are you sure you want to skip to the next question? This will advance all players regardless of their current state.";
+
+      const confirmed = confirm(skipMessage);
       if (!confirmed) return;
     }
 
+    // Set both state and ref immediately to prevent any race conditions
+    isAdvancingRef.current = true;
     setIsAdvancingQuestion(true);
+
     try {
       await gameService.nextQuestion(adminState.selectedGame.id);
+
+      // Start cooldown only for normal advances, not force skips
+      if (!forceSkip) {
+        startQuestionCooldown();
+      }
+
       toast.success(
         forceSkip ? "Skipped to next question" : "Advanced to next question"
       );
@@ -431,6 +481,8 @@ const Admin = () => {
           error instanceof Error ? error.message : "Failed to advance question",
       }));
     } finally {
+      // Clear both state and ref
+      isAdvancingRef.current = false;
       setIsAdvancingQuestion(false);
     }
   };
@@ -1067,6 +1119,7 @@ const Admin = () => {
             onStopGame={handleStopGame}
             onNextQuestion={handleNextQuestion}
             isAdvancingQuestion={isAdvancingQuestion}
+            questionCooldownTime={questionCooldownTime}
           />
         )}
 

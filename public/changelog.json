@@ -1,11 +1,27 @@
 {
   "buildInfo": {
-    "generatedAt": "2025-08-11T19:53:05.506Z",
+    "generatedAt": "2025-08-11T20:36:54.805Z",
     "totalCommits": 50,
-    "latestCommit": "6b6a2d9ad11b055fd721a9aaa4baba7316db0d6e",
+    "latestCommit": "794bde4d916cc687bb834713cd92caf9355242fe",
     "repository": "ssccio/star-point-quiz-time"
   },
   "commits": [
+    {
+      "hash": "794bde4d916cc687bb834713cd92caf9355242fe",
+      "shortHash": "794bde4",
+      "message": "fix(timer): resolve countdown timer sync issues with browser tab switching",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754943521,
+      "date": "2025-08-11T20:18:41.000Z"
+    },
+    {
+      "hash": "81e3369a44a77ddaf2d0d6d57c28471ebffbb142",
+      "shortHash": "81e3369",
+      "message": "feat(admin): prevent accidental double-click on Next Question button",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754942112,
+      "date": "2025-08-11T19:55:12.000Z"
+    },
     {
       "hash": "6b6a2d9ad11b055fd721a9aaa4baba7316db0d6e",
       "shortHash": "6b6a2d9",
@@ -389,22 +405,6 @@
       "author": "Ken Trenkelbach",
       "timestamp": 1753489384,
       "date": "2025-07-26T00:23:04.000Z"
-    },
-    {
-      "hash": "f1b8a0f32c24f679e4c77b01b2b849dce03fb79f",
-      "shortHash": "f1b8a0f",
-      "message": "Remove demo data from multiplayer games and fix score display",
-      "author": "Ken Trenkelbach",
-      "timestamp": 1753488839,
-      "date": "2025-07-26T00:13:59.000Z"
-    },
-    {
-      "hash": "1e0d9ebe8dec7d0d519531053d735d1672652223",
-      "shortHash": "1e0d9eb",
-      "message": "Fix lobby not transitioning players when game becomes active",
-      "author": "Ken Trenkelbach",
-      "timestamp": 1753487079,
-      "date": "2025-07-25T23:44:39.000Z"
     }
   ]
 }
