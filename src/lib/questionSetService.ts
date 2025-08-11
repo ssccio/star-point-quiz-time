@@ -21,20 +21,40 @@ export interface QuestionSetWithQuestions extends QuestionSet {
 class QuestionSetService {
   // Get all active question sets
   async getQuestionSets(includeInactive = false): Promise<QuestionSet[]> {
-    const query = supabase.from("question_sets").select("*").order("name");
+    let query = supabase.from("question_sets").select("*").order("name");
 
     if (!includeInactive) {
-      query.eq("is_active", true);
+      query = query.eq("is_active", true);
     }
 
-    const { data, error } = await query;
+    const { data: questionSets, error } = await query;
 
     if (error) {
       console.error("Error fetching question sets:", error);
       throw error;
     }
 
-    return data || [];
+    // For each question set, get the question count
+    const setsWithCounts = await Promise.all(
+      (questionSets || []).map(async (set) => {
+        const { count, error: countError } = await supabase
+          .from("questions")
+          .select("*", { count: "exact", head: true })
+          .eq("question_set_id", set.id);
+
+        if (countError) {
+          console.error(
+            `Error counting questions for set ${set.id}:`,
+            countError
+          );
+          return { ...set, question_count: 0 };
+        }
+
+        return { ...set, question_count: count || 0 };
+      })
+    );
+
+    return setsWithCounts;
   }
 
   // Get a specific question set with all its questions
