@@ -98,6 +98,11 @@ export const useGameState = (
           });
           return;
         }
+        // If we're on the game page but showing "waiting", force a question state update
+        if (window.location.pathname === "/game" && phase === "question") {
+          console.log("On game page with active game - forcing question sync");
+          // This will trigger the question sync logic below
+        }
       } else if (game.status === "finished") {
         console.log("Game finished - redirecting to results");
         navigate("/results", {
@@ -142,6 +147,8 @@ export const useGameState = (
     navigate,
     playerName,
     teamId,
+    phase,
+    scores,
   ]);
 
   // Practice mode specific state
@@ -340,18 +347,15 @@ export const useGameState = (
     syncGameState,
   ]);
 
-  // Periodic sync check for phone lock scenarios - only when on lobby/team-join pages
+  // Periodic sync check for phone lock scenarios - runs on waiting screens and during game
   useEffect(() => {
     if (isPracticeMode || !gameId) return;
 
-    const currentPath = window.location.pathname;
-    if (currentPath !== "/lobby" && currentPath !== "/team-join") return;
-
-    console.log("Setting up periodic sync check for lobby/team-join page");
+    console.log("Setting up periodic sync check for phone lock recovery");
     const interval = setInterval(() => {
       console.log("Periodic sync check - verifying game status");
       syncGameState();
-    }, 5000); // Check every 5 seconds
+    }, 3000); // Check every 3 seconds for more responsive recovery
 
     return () => {
       console.log("Clearing periodic sync check");

@@ -134,17 +134,12 @@ export const useSupabaseSubscription = (
       console.log(`${debugLabel}: Forcing state sync after visibility change`);
       onReconnected?.();
 
-      // Check if we need to reconnect the subscription itself
-      if (
-        !subscriptionRef.current.isActive ||
-        subscriptionRef.current.lastStatus === "CLOSED" ||
-        subscriptionRef.current.lastStatus === "CHANNEL_ERROR"
-      ) {
-        console.log(
-          `${debugLabel}: Reconnecting subscription after visibility change`
-        );
-        createSubscription();
-      }
+      // For phone lock scenarios, always recreate subscription after visibility change
+      // This is more aggressive but necessary since subscriptions can appear active but be dead
+      console.log(
+        `${debugLabel}: Aggressively reconnecting subscription after phone lock/unlock`
+      );
+      createSubscription();
     } else {
       console.log(`${debugLabel}: App went to background`);
     }

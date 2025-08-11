@@ -1,11 +1,19 @@
 {
   "buildInfo": {
-    "generatedAt": "2025-08-11T21:46:40.875Z",
+    "generatedAt": "2025-08-11T22:14:16.980Z",
     "totalCommits": 50,
-    "latestCommit": "17d8e3f31d572a8fff979f859593dab1a86394c8",
+    "latestCommit": "cb7bfae2a772e79df0bd046391750adfedf18993",
     "repository": "ssccio/star-point-quiz-time"
   },
   "commits": [
+    {
+      "hash": "cb7bfae2a772e79df0bd046391750adfedf18993",
+      "shortHash": "cb7bfae",
+      "message": "fix(phone-lock): enhance reconnection logic for game state transitions",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754949594,
+      "date": "2025-08-11T21:59:54.000Z"
+    },
     {
       "hash": "17d8e3f31d572a8fff979f859593dab1a86394c8",
       "shortHash": "17d8e3f",
@@ -397,14 +405,6 @@
       "author": "Ken Trenkelbach",
       "timestamp": 1753490959,
       "date": "2025-07-26T00:49:19.000Z"
-    },
-    {
-      "hash": "2ec57aa959021dd21a8531dd76b0bac81db68b8b",
-      "shortHash": "2ec57aa",
-      "message": "Add comprehensive game management to admin panel",
-      "author": "Ken Trenkelbach",
-      "timestamp": 1753490022,
-      "date": "2025-07-26T00:33:42.000Z"
     }
   ]
 }
