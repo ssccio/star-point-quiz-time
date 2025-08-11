@@ -69,9 +69,13 @@ export const useGameState = (
     const gameData = JSON.parse(localStorage.getItem("gameData") || "{}");
     const gameCode = gameData.gameCode;
 
+    console.log(
+      `[SYNC] Starting sync - gameId: ${gameId}, gameCode: ${gameCode}, path: ${window.location.pathname}, phase: ${phase}`
+    );
     if (!gameCode) return;
     try {
       const game = await gameService.getGame(gameCode);
+      console.log(`[SYNC] Retrieved game:`, game);
       if (!game) {
         console.log("Game no longer exists - redirecting to error recovery");
         navigate("/new-game", {
@@ -85,6 +89,9 @@ export const useGameState = (
       }
 
       // Check for game status changes (most critical for phone lock scenarios)
+      console.log(
+        `[SYNC] Game status: ${game.status}, current path: ${window.location.pathname}, phase: ${phase}`
+      );
       if (game.status === "active") {
         console.log("Game is active - ensuring we're in the game");
         // If we're still on waiting/lobby screen but game is active, navigate to game
@@ -92,7 +99,9 @@ export const useGameState = (
           window.location.pathname === "/lobby" ||
           window.location.pathname === "/team-join"
         ) {
-          console.log("Redirecting from lobby to active game");
+          console.log(
+            `[SYNC] ⚠️ CRITICAL: Redirecting from ${window.location.pathname} to active game`
+          );
           navigate("/game", {
             state: { playerName, team: teamId },
           });
@@ -100,7 +109,9 @@ export const useGameState = (
         }
         // If we're on the game page but showing "waiting", force a question state update
         if (window.location.pathname === "/game" && phase === "question") {
-          console.log("On game page with active game - forcing question sync");
+          console.log(
+            `[SYNC] ⚠️ On game page with active game - forcing question sync (current Q: ${currentQuestionIndex + 1}, game Q: ${game.current_question})`
+          );
           // This will trigger the question sync logic below
         }
       } else if (game.status === "finished") {
@@ -113,6 +124,46 @@ export const useGameState = (
           },
         });
         return;
+      }
+
+      // Check if we need to reload questions (critical for phone lock recovery)
+      const gameQuestionIndex = (game.current_question || 1) - 1;
+      const needsQuestionReload =
+        gameQuestionIndex >= questions.length ||
+        questions === sampleQuestions ||
+        questions.length < 10; // Likely still default questions
+
+      if (needsQuestionReload) {
+        console.log(
+          `[SYNC] 🔄 RELOADING QUESTIONS: game wants index ${gameQuestionIndex} but we only have ${questions.length} questions`
+        );
+        try {
+          const gameQuestions = await gameService.getGameQuestions(gameId);
+          if (gameQuestions.length > 0) {
+            console.log(
+              `[SYNC] ✅ Reloaded ${gameQuestions.length} questions from database`
+            );
+            // Convert database questions to the format expected by the game
+            const convertedQuestions = gameQuestions.map((q) => ({
+              id: q.question_number.toString(),
+              question: q.question_text,
+              options: {
+                A: q.option_a,
+                B: q.option_b,
+                C: q.option_c,
+                D: q.option_d,
+              },
+              correctAnswer: q.correct_answer,
+              explanation: q.explanation,
+            }));
+            setQuestions(convertedQuestions);
+            console.log(
+              `[SYNC] ✅ Questions updated, now have ${convertedQuestions.length} questions`
+            );
+          }
+        } catch (error) {
+          console.error("[SYNC] ❌ Failed to reload questions:", error);
+        }
       }
 
       if (game.current_question !== currentQuestionIndex + 1) {
@@ -360,6 +411,49 @@ export const useGameState = (
     return () => {
       console.log("Clearing periodic sync check");
       clearInterval(interval);
+    };
+  }, [isPracticeMode, gameId, syncGameState]);
+
+  // Add focus event listener as additional recovery trigger (for phones returning from lock)
+  useEffect(() => {
+    if (isPracticeMode || !gameId) return;
+
+    const handleFocus = () => {
+      console.log("Window focus event - triggering emergency sync");
+      setTimeout(() => {
+        syncGameState();
+      }, 100); // Small delay to ensure DOM is ready
+    };
+
+    const handleOnline = () => {
+      console.log("Network online event - triggering emergency sync");
+      setTimeout(() => {
+        syncGameState();
+      }, 500); // Delay for network to stabilize
+    };
+
+    const handleUserInteraction = () => {
+      console.log("User interaction detected - triggering emergency sync");
+      setTimeout(() => {
+        syncGameState();
+      }, 50);
+    };
+
+    // Listen to multiple events that could indicate phone unlock/reconnection
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("online", handleOnline);
+    // Add user interaction events as they often indicate phone unlock
+    window.addEventListener("touchstart", handleUserInteraction, {
+      once: true,
+      passive: true,
+    });
+    window.addEventListener("click", handleUserInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("touchstart", handleUserInteraction);
+      window.removeEventListener("click", handleUserInteraction);
     };
   }, [isPracticeMode, gameId, syncGameState]);
 
