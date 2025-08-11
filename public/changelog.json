@@ -1,0 +1,410 @@
+{
+  "buildInfo": {
+    "generatedAt": "2025-08-11T18:35:05.767Z",
+    "totalCommits": 50,
+    "latestCommit": "685aeaacb15cd09996a9cfe5ba0c90a2d9f1f35b",
+    "repository": "ssccio/star-point-quiz-time"
+  },
+  "commits": [
+    {
+      "hash": "685aeaacb15cd09996a9cfe5ba0c90a2d9f1f35b",
+      "shortHash": "685aeaa",
+      "message": "debug: add console logging to track game question creation process",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754936156,
+      "date": "2025-08-11T18:15:56.000Z"
+    },
+    {
+      "hash": "19758af2f9a2c98ffe8b84f98f759716174ac626",
+      "shortHash": "19758af",
+      "message": "fix: resolve missing question text and host redirect issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754934614,
+      "date": "2025-08-11T17:50:14.000Z"
+    },
+    {
+      "hash": "c0470065a5a354885048114aaddb8fd2620fbddc",
+      "shortHash": "c047006",
+      "message": "fix: resolve question interface mismatch causing blank white screen",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754932794,
+      "date": "2025-08-11T17:19:54.000Z"
+    },
+    {
+      "hash": "f53503185df6b6a3a073f243c6b4115270fbf337",
+      "shortHash": "f535031",
+      "message": "fix(host): replace non-existent updateGameStatus with startGame",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754928454,
+      "date": "2025-08-11T16:07:34.000Z"
+    },
+    {
+      "hash": "954c498e1e3bfe258753af5dd0221029a8dbc05b",
+      "shortHash": "954c498",
+      "message": "fix(types): align Game interface with database schema",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754923021,
+      "date": "2025-08-11T14:37:01.000Z"
+    },
+    {
+      "hash": "59c6463cf99c33644a4eb4a94fa798ae18ac336b",
+      "shortHash": "59c6463",
+      "message": "fix(admin): fix question count display for uploaded question sets",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754921920,
+      "date": "2025-08-11T14:18:40.000Z"
+    },
+    {
+      "hash": "fce04853ff67f8e605f0de3b572e70a97dd340fc",
+      "shortHash": "fce0485",
+      "message": "fix: resolve YAML question format and missing type definitions",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754920743,
+      "date": "2025-08-11T13:59:03.000Z"
+    },
+    {
+      "hash": "3ef153f8103538b8528795169a20e558da1a228d",
+      "shortHash": "3ef153f",
+      "message": "Merge pull request #4 from ssccio/feature/smoother-game-flow",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754751802,
+      "date": "2025-08-09T15:03:22.000Z"
+    },
+    {
+      "hash": "243ba01f72c78d884f9c3ae782bfc9ad75f75afe",
+      "shortHash": "243ba01",
+      "message": "feat: redesign game flow for smoother user experience",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754751272,
+      "date": "2025-08-09T14:54:32.000Z"
+    },
+    {
+      "hash": "5b2a375c257c6c02de25c4e36dc7352ceca4973f",
+      "shortHash": "5b2a375",
+      "message": "feat(admin): add proper question set upload interface",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754705362,
+      "date": "2025-08-09T02:09:22.000Z"
+    },
+    {
+      "hash": "1f36e265ff410ad178c30d31333aace7047a98f7",
+      "shortHash": "1f36e26",
+      "message": "feat(questions): implement database-backed question set management system",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754702663,
+      "date": "2025-08-09T01:24:23.000Z"
+    },
+    {
+      "hash": "4c7f008016c3f55c81f9dc5b083e2201656233a6",
+      "shortHash": "4c7f008",
+      "message": "fix(admin): make game creation resilient to missing game_questions table",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754697323,
+      "date": "2025-08-08T23:55:23.000Z"
+    },
+    {
+      "hash": "364b95d147a74e3fcb39c579c62d9ebb79db0cec",
+      "shortHash": "364b95d",
+      "message": "feat(game): implement synchronized question system for multiplayer",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754615136,
+      "date": "2025-08-08T01:05:36.000Z"
+    },
+    {
+      "hash": "00077b07d7ccc010cfced04c8ed2853654dec135",
+      "shortHash": "00077b0",
+      "message": "fix(phone-lock): improve game state recovery and user feedback",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754613871,
+      "date": "2025-08-08T00:44:31.000Z"
+    },
+    {
+      "hash": "ccfc7358f49dd1087f941f4a73b231dba004e43d",
+      "shortHash": "ccfc735",
+      "message": "fix(admin,phone-lock): resolve game status display and name re-entry issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754530442,
+      "date": "2025-08-07T01:34:02.000Z"
+    },
+    {
+      "hash": "8253859591af84eadc66599f22ed0c92d2c88569",
+      "shortHash": "8253859",
+      "message": "style: format codebase with prettier and tailwind plugin",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754529777,
+      "date": "2025-08-07T01:22:57.000Z"
+    },
+    {
+      "hash": "542d62e0de3e3cf6fed88b89356753c596d1c333",
+      "shortHash": "542d62e",
+      "message": "feat: implement comprehensive phone lock recovery system",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754528155,
+      "date": "2025-08-07T00:55:55.000Z"
+    },
+    {
+      "hash": "21051a4aafab446f00a8f81715a373c7eb7f256b",
+      "shortHash": "21051a4",
+      "message": "fix: resolve admin panel navigation, question quality, game code format, and phone lock issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754524122,
+      "date": "2025-08-06T23:48:42.000Z"
+    },
+    {
+      "hash": "1f1840b52fb63264e8a18a1f1b66bbca55034dec",
+      "shortHash": "1f1840b",
+      "message": "fix: resolve multiple practice mode and game functionality issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754521266,
+      "date": "2025-08-06T23:01:06.000Z"
+    },
+    {
+      "hash": "8aa26d2d5be24b0757e350125192e001a4a23b67",
+      "shortHash": "8aa26d2",
+      "message": "feat: implement comprehensive practice mode with timer fixes and session tracking",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754519871,
+      "date": "2025-08-06T22:37:51.000Z"
+    },
+    {
+      "hash": "3d8113c195cbf7bfe09ecd6beecbd8bc01a77e85",
+      "shortHash": "3d8113c",
+      "message": "fix: persist team join state to handle phone lock during dinner",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754444501,
+      "date": "2025-08-06T01:41:41.000Z"
+    },
+    {
+      "hash": "a3eeaa3ae90bedb191c0be46b9c5ea2e6cd5b6fb",
+      "shortHash": "a3eeaa3",
+      "message": "fix: enable player reconnection after connection loss or phone lock",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754444183,
+      "date": "2025-08-06T01:36:23.000Z"
+    },
+    {
+      "hash": "b1df6830718557ff4d05d5e6dd1509782c292dcc",
+      "shortHash": "b1df683",
+      "message": "fix: restructure homepage to be player-focused instead of admin-focused",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754358531,
+      "date": "2025-08-05T01:48:51.000Z"
+    },
+    {
+      "hash": "7be403a43b0845dff6076526d5512ad9ee661687",
+      "shortHash": "7be403a",
+      "message": "fix: resolve gameflow problems with duplicate players and double-step join",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754357539,
+      "date": "2025-08-05T01:32:19.000Z"
+    },
+    {
+      "hash": "d5f3e3a40c49184bbc206470ed9d2814edc15fa8",
+      "shortHash": "d5f3e3a",
+      "message": "feat: implement comprehensive player queue system for late-join handling",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754355431,
+      "date": "2025-08-05T00:57:11.000Z"
+    },
+    {
+      "hash": "98e059c6efbfe7581db05e6a5bb608a498c34cc2",
+      "shortHash": "98e059c",
+      "message": "fix: enhance error recovery for game deletion and late-join scenarios",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754353320,
+      "date": "2025-08-05T00:22:00.000Z"
+    },
+    {
+      "hash": "0b2b397bfa2ecea0f321663659ab31245336a970",
+      "shortHash": "0b2b397",
+      "message": "fix: critical admin panel and real-time synchronization improvements",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754350304,
+      "date": "2025-08-04T23:31:44.000Z"
+    },
+    {
+      "hash": "b05a1739d48733fac376d16b83995cea2760db8a",
+      "shortHash": "b05a173",
+      "message": "feat: improve user flow with welcome back screen for multi-game sessions",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754349067,
+      "date": "2025-08-04T23:11:07.000Z"
+    },
+    {
+      "hash": "e315183f1613d4dfa5c1db694f502fd7a00ef103",
+      "shortHash": "e315183",
+      "message": "fix: resolve critical game timing, sync, and scoring issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1754348133,
+      "date": "2025-08-04T22:55:33.000Z"
+    },
+    {
+      "hash": "7e2d5d6ce4ed695a82a5827726a2d6481d44ec49",
+      "shortHash": "7e2d5d6",
+      "message": "Add comprehensive Commit Manager subagent for intelligent git operations",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753925375,
+      "date": "2025-07-31T01:29:35.000Z"
+    },
+    {
+      "hash": "2edbfd889ff370f59634a9c3b20d219d558ef32a",
+      "shortHash": "2edbfd8",
+      "message": "Add comprehensive Rob Morris biography questions and improved question management",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753924426,
+      "date": "2025-07-31T01:13:46.000Z"
+    },
+    {
+      "hash": "b881408c94170a0ea4f7b4250e0ae1a247908b7f",
+      "shortHash": "b881408",
+      "message": "feat: add Claude Code workflow agents and fix linting issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753577759,
+      "date": "2025-07-27T00:55:59.000Z"
+    },
+    {
+      "hash": "addde1cb2dce8ee86406df9358c481228fdd122e",
+      "shortHash": "addde1c",
+      "message": "fix: correct question number display mismatch in admin panel",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753574249,
+      "date": "2025-07-26T23:57:29.000Z"
+    },
+    {
+      "hash": "c4f66c32da8afb32e7a2a691f9031b8c19e546eb",
+      "shortHash": "c4f66c3",
+      "message": "fix: remove Next Question button for players in multiplayer mode",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753572647,
+      "date": "2025-07-26T23:30:47.000Z"
+    },
+    {
+      "hash": "6c5fa3b0723d3c1b5aadebc4043f1a5cab45a03a",
+      "shortHash": "6c5fa3b",
+      "message": "Merge pull request #3 from ssccio/fix/qr-links-and-debug-logging",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753567742,
+      "date": "2025-07-26T22:09:02.000Z"
+    },
+    {
+      "hash": "185ba0947e811013e2521c73b09bbe86ead13dac",
+      "shortHash": "185ba09",
+      "message": "fix: improve QR code links and add debug logging for real-time issues",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753567638,
+      "date": "2025-07-26T22:07:18.000Z"
+    },
+    {
+      "hash": "cd593fe16d9f114a41162331836577da41bf0f79",
+      "shortHash": "cd593fe",
+      "message": "Merge pull request #2 from ssccio/feature/admin-browse-games-button",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753566332,
+      "date": "2025-07-26T21:45:32.000Z"
+    },
+    {
+      "hash": "e0c1d5d56b69d442897b7264a5d59ce8a35c728d",
+      "shortHash": "e0c1d5d",
+      "message": "CDI-XXXX: feat: add browse games button to admin panel",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753566181,
+      "date": "2025-07-26T21:43:01.000Z"
+    },
+    {
+      "hash": "657f79d33ca605024e23eefb0ef7facaf189fcc8",
+      "shortHash": "657f79d",
+      "message": "Add debug logging to admin answer tracking",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753492149,
+      "date": "2025-07-26T01:09:09.000Z"
+    },
+    {
+      "hash": "f9ba1eebe887358793524d253c36750544c696d3",
+      "shortHash": "f9ba1ee",
+      "message": "Implement comprehensive real-time multiplayer functionality",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753491539,
+      "date": "2025-07-26T00:58:59.000Z"
+    },
+    {
+      "hash": "c5e0c875859f892f14403999bb8e0dab4f5a9b42",
+      "shortHash": "c5e0c87",
+      "message": "Improve user experience and add admin real-time foundations",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753490959,
+      "date": "2025-07-26T00:49:19.000Z"
+    },
+    {
+      "hash": "2ec57aa959021dd21a8531dd76b0bac81db68b8b",
+      "shortHash": "2ec57aa",
+      "message": "Add comprehensive game management to admin panel",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753490022,
+      "date": "2025-07-26T00:33:42.000Z"
+    },
+    {
+      "hash": "94530d7da1d1fa0cc4ba057fd99251643a5cfb43",
+      "shortHash": "94530d7",
+      "message": "Add game switching functionality to admin panel",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753489384,
+      "date": "2025-07-26T00:23:04.000Z"
+    },
+    {
+      "hash": "f1b8a0f32c24f679e4c77b01b2b849dce03fb79f",
+      "shortHash": "f1b8a0f",
+      "message": "Remove demo data from multiplayer games and fix score display",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753488839,
+      "date": "2025-07-26T00:13:59.000Z"
+    },
+    {
+      "hash": "1e0d9ebe8dec7d0d519531053d735d1672652223",
+      "shortHash": "1e0d9eb",
+      "message": "Fix lobby not transitioning players when game becomes active",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753487079,
+      "date": "2025-07-25T23:44:39.000Z"
+    },
+    {
+      "hash": "060da1148d09545acaaffb1af8de248b5842c83d",
+      "shortHash": "060da11",
+      "message": "Fix Start Game button for active games in production",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753485578,
+      "date": "2025-07-25T23:19:38.000Z"
+    },
+    {
+      "hash": "1aadb3ff810b364c13a0a154b233ad84db9ae837",
+      "shortHash": "1aadb3f",
+      "message": "Fix QR code flow and admin game controls",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753482791,
+      "date": "2025-07-25T22:33:11.000Z"
+    },
+    {
+      "hash": "469ea478228aee0522fae331629452f077d0b7ef",
+      "shortHash": "469ea47",
+      "message": "Transform practice mode into educational experience and implement YAML question system",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753407074,
+      "date": "2025-07-25T01:31:14.000Z"
+    },
+    {
+      "hash": "5d8f84dbd205cac0208d1f863bbbfffd4b8a0d37",
+      "shortHash": "5d8f84d",
+      "message": "Optimize QR code generation performance to prevent browser lockups",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753401208,
+      "date": "2025-07-24T23:53:28.000Z"
+    },
+    {
+      "hash": "1e5cd9b56c52a773742f001cbd9bc16522222051",
+      "shortHash": "1e5cd9b",
+      "message": "Add comprehensive development roadmap for Eastern Star educational platform",
+      "author": "Ken Trenkelbach",
+      "timestamp": 1753150425,
+      "date": "2025-07-22T02:13:45.000Z"
+    }
+  ]
+}

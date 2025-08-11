@@ -26,6 +26,7 @@ import {
   Users,
   ArrowLeft,
   Upload,
+  Clock,
 } from "lucide-react";
 import { sampleQuestions } from "@/utils/sampleData";
 import {
@@ -861,15 +862,26 @@ const Admin = () => {
                         <p className="text-sm text-gray-500">
                           {totalQuestions} questions available
                         </p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate("/admin/question-sets")}
-                        >
-                          <Upload className="mr-1 h-3 w-3" />
-                          Manage Sets
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate("/admin/question-sets")}
+                          >
+                            <Upload className="mr-1 h-3 w-3" />
+                            Manage Sets
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate("/changelog")}
+                          >
+                            <Clock className="mr-1 h-3 w-3" />
+                            Changelog
+                          </Button>
+                        </div>
                       </div>
                     </div>
 

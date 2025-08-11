@@ -117,8 +117,9 @@ export const gameService = {
 
       // Load questions from the question set
       console.log("Loading questions for question set:", questionSetId);
-      const { questions } =
-        await questionSetService.getQuestionSetData(questionSetId);
+      const questionSetData =
+        await questionSetService.getQuestionSet(questionSetId);
+      const questions = questionSetData?.questions || [];
       console.log("Loaded questions:", questions.length, questions);
 
       const game: Game = {
@@ -162,8 +163,9 @@ export const gameService = {
 
     // Load questions from the question set
     console.log("Loading questions for question set:", questionSetId);
-    const { questions } =
-      await questionSetService.getQuestionSetData(questionSetId);
+    const questionSetData =
+      await questionSetService.getQuestionSet(questionSetId);
+    const questions = questionSetData?.questions || [];
     console.log("Loaded questions:", questions.length, questions);
 
     const { data: game, error: gameError } = await client

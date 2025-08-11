@@ -21,6 +21,7 @@ import Queue from "./pages/Queue";
 import PracticeSetup from "./pages/PracticeSetup";
 import PracticeSignup from "./pages/PracticeSignup";
 import { QuestionSetManager } from "./pages/QuestionSetManager";
+import Changelog from "./pages/Changelog";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +59,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/qr-codes" element={<PrintableQR />} />
           <Route path="/admin/question-sets" element={<QuestionSetManager />} />
+          <Route path="/changelog" element={<Changelog />} />
           <Route path="/join" element={<TeamJoin />} />
           <Route path="/join/:gameCode" element={<JoinGame />} />
           <Route path="/join/:gameCode/:team" element={<JoinGame />} />
