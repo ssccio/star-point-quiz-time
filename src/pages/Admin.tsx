@@ -499,9 +499,11 @@ const Admin = () => {
 
     setIsCreatingGame(true);
     try {
-      const { game, gameCode: newGameCode } = await gameService.createGame(
-        hostName.trim()
+      const { game } = await gameService.createGame(
+        hostName.trim(),
+        selectedQuestionSetId || selectedQuestionSet
       );
+      const newGameCode = game.game_code;
 
       // Copy questions from the selected question set to the game
       try {
@@ -550,7 +552,7 @@ const Admin = () => {
       setAdminState((prev) => ({
         ...prev,
         selectedGame: game,
-        players: [], // No players initially - admin is not a player
+        players: [], // No players initially
         error: null,
       }));
 

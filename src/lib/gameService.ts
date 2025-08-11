@@ -106,7 +106,7 @@ export const gameService = {
   async createGame(
     hostName: string,
     questionSetId: string
-  ): Promise<{ game: Game; player: Player }> {
+  ): Promise<{ game: Game }> {
     const gameCode = generateGameCode();
     const hostId = crypto.randomUUID();
 
@@ -132,30 +132,14 @@ export const gameService = {
         updated_at: now,
       };
 
-      // Create host player record
-      const player: Player = {
-        id: hostId,
-        name: hostName,
-        team: "host",
-        score: 0,
-      };
-
       // Store in mock store
       mockStore.games.set(gameId, game);
       mockStore.gamesByCode.set(gameCode, gameId);
-      mockStore.players.set(hostId, {
-        id: hostId,
-        name: hostName,
-        team: "host",
-        score: 0,
-        game_id: gameId,
-        is_active: true,
-      });
 
       // Store questions for this game
       await this.storeGameQuestions(gameId, questions);
 
-      return { game, player };
+      return { game };
     }
 
     // Real Supabase implementation
@@ -185,31 +169,10 @@ export const gameService = {
       );
     }
 
-    // Create host player record
-    const { data: player, error: playerError } = await client
-      .from("players")
-      .insert({
-        id: hostId,
-        name: hostName,
-        team: "host",
-        score: 0,
-        game_id: game.id,
-        is_active: true,
-      })
-      .select()
-      .single();
-
-    if (playerError) {
-      throw new GameServiceError(
-        `Failed to create host player: ${playerError.message}`,
-        playerError.code
-      );
-    }
-
     // Set up game questions
     await this.storeGameQuestions(game.id, questions);
 
-    return { game, player };
+    return { game };
   },
 
   // Player joins existing game
