@@ -120,7 +120,7 @@ export const useSupabaseSubscription = (
   const handleUnlockDetected = useCallback(
     (eventType: string) => {
       console.log(
-        `${debugLabel}: Phone unlock detected via ${eventType} - triggering recovery`
+        `${debugLabel}: 🔓 UNLOCK DETECTED via ${eventType} - triggering recovery at ${new Date().toISOString()}`
       );
 
       // Clear any pending reconnection attempts

@@ -75,7 +75,15 @@ export const useGameState = (
     if (!gameCode) return;
     try {
       const game = await gameService.getGame(gameCode);
-      console.log(`[SYNC] Retrieved game:`, game);
+      console.log(`[SYNC] ⭐ CRITICAL DEBUG - Retrieved game:`, {
+        gameExists: !!game,
+        gameStatus: game?.status,
+        gameCurrentQuestion: game?.current_question,
+        gameCode: gameCode,
+        currentPath: window.location.pathname,
+        timestamp: new Date().toISOString(),
+      });
+
       if (!game) {
         console.log("Game no longer exists - redirecting to error recovery");
         navigate("/new-game", {
@@ -420,7 +428,7 @@ export const useGameState = (
     const interval = setInterval(() => {
       const currentPath = window.location.pathname;
       console.log(
-        `Periodic sync check (${checkInterval}ms interval) - path: ${currentPath}`
+        `[SYNC] ⏰ Periodic sync check (${checkInterval}ms interval) - path: ${currentPath}, gameId: ${gameId}, gameCode: ${gameData.gameCode}`
       );
       syncGameState();
     }, checkInterval);
