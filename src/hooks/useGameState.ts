@@ -428,7 +428,7 @@ export const useGameState = (
     const interval = setInterval(() => {
       const currentPath = window.location.pathname;
       console.log(
-        `[SYNC] ⏰ Periodic sync check (${checkInterval}ms interval) - path: ${currentPath}, gameId: ${gameId}, gameCode: ${gameData.gameCode}`
+        `[SYNC] ⏰ Periodic sync check (${checkInterval}ms interval) - path: ${currentPath}, gameId: ${gameId}`
       );
       syncGameState();
     }, checkInterval);
