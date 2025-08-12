@@ -8,6 +8,10 @@ export const useGameTimer = (
   const [timeRemaining, setTimeRemaining] = useState(initialTime);
   const startTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const onTimeUpRef = useRef(onTimeUp);
+
+  // Keep the callback ref updated
+  onTimeUpRef.current = onTimeUp;
 
   console.log(
     `🔧 useGameTimer HOOK CALLED: isActive=${isActive}, initialTime=${initialTime}, timeRemaining=${timeRemaining}, onTimeUp=${!!onTimeUp}`
@@ -15,7 +19,7 @@ export const useGameTimer = (
 
   useEffect(() => {
     console.log(
-      `🔄 useGameTimer useEffect RUNNING: isActive=${isActive}, timeRemaining=${timeRemaining}, startTimeRef=${startTimeRef.current}, deps=[${isActive}, ${initialTime}, ${!!onTimeUp}]`
+      `🔄 useGameTimer useEffect RUNNING: isActive=${isActive}, timeRemaining=${timeRemaining}, startTimeRef=${startTimeRef.current}, deps=[${isActive}, ${initialTime}]`
     );
 
     if (isActive && timeRemaining > 0) {
@@ -46,9 +50,13 @@ export const useGameTimer = (
         );
         setTimeRemaining(remaining);
 
-        if (remaining === 0 && onTimeUp && startTimeRef.current !== null) {
+        if (
+          remaining === 0 &&
+          onTimeUpRef.current &&
+          startTimeRef.current !== null
+        ) {
           console.log(`Timer expired! Calling onTimeUp`);
-          onTimeUp();
+          onTimeUpRef.current();
         }
       };
 
@@ -78,7 +86,7 @@ export const useGameTimer = (
     }
     // Removed problematic else-if condition that was firing during state transitions
     // The timer expiration is already handled within the main timer logic above
-  }, [isActive, initialTime, onTimeUp]);
+  }, [isActive, initialTime]); // Removed onTimeUp dependency - now using stable ref
 
   const resetTimer = useCallback(
     (newTime?: number) => {
