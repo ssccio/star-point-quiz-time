@@ -770,11 +770,15 @@ export const useGameState = (
   const [timeUp, setTimeUp] = useState(false);
 
   const handleTimeUp = useCallback(() => {
-    if (!hasSubmitted) {
-      setTimeUp(true);
-      setPhase("answer-reveal");
-    }
-  }, [hasSubmitted]);
+    // Use functional update to avoid dependency on hasSubmitted
+    setHasSubmitted((currentHasSubmitted) => {
+      if (!currentHasSubmitted) {
+        setTimeUp(true);
+        setPhase("answer-reveal");
+      }
+      return currentHasSubmitted; // Don't change the state, just read it
+    });
+  }, []); // Empty dependency array - callback is now stable
 
   return {
     currentQuestionIndex,
