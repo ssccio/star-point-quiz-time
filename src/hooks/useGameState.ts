@@ -137,9 +137,7 @@ export const useGameState = (
       // Check if we need to reload questions (critical for phone lock recovery)
       const gameQuestionIndex = (game.current_question || 1) - 1;
       const needsQuestionReload =
-        gameQuestionIndex >= questions.length ||
-        questions === sampleQuestions ||
-        questions.length < 10; // Likely still default questions
+        gameQuestionIndex >= questions.length || questions === sampleQuestions;
 
       if (needsQuestionReload) {
         console.log(
