@@ -10,22 +10,36 @@ export const useGameTimer = (
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    console.log(
+      `useGameTimer useEffect: isActive=${isActive}, timeRemaining=${timeRemaining}, startTimeRef=${startTimeRef.current}`
+    );
+
     if (isActive && timeRemaining > 0) {
       // Set start time when timer becomes active
       if (startTimeRef.current === null) {
         startTimeRef.current = Date.now();
         console.log(
-          `Timer started at ${new Date(startTimeRef.current).toISOString()}, duration: ${initialTime}s`
+          `🟢 Timer started at ${new Date(startTimeRef.current).toISOString()}, duration: ${initialTime}s, timeRemaining: ${timeRemaining}`
+        );
+      } else {
+        console.log(
+          `⚠️ Timer useEffect ran but startTimeRef already set: ${new Date(startTimeRef.current).toISOString()}`
         );
       }
 
       // Calculate actual time remaining based on elapsed time
       const updateTimer = () => {
-        if (startTimeRef.current === null) return;
+        if (startTimeRef.current === null) {
+          console.log(`❌ updateTimer: startTimeRef is null, skipping`);
+          return;
+        }
 
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         const remaining = Math.max(0, initialTime - elapsed);
 
+        console.log(
+          `⏰ updateTimer: elapsed=${elapsed}s, remaining=${remaining}s`
+        );
         setTimeRemaining(remaining);
 
         if (remaining === 0 && onTimeUp && startTimeRef.current !== null) {
@@ -37,6 +51,7 @@ export const useGameTimer = (
       // Update immediately and then set interval
       updateTimer();
       intervalRef.current = setInterval(updateTimer, 1000);
+      console.log(`📅 Timer interval set, intervalRef:`, intervalRef.current);
 
       // Handle visibility change to recalculate timer when tab becomes visible
       const handleVisibilityChange = () => {
