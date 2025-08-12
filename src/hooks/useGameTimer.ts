@@ -9,9 +9,13 @@ export const useGameTimer = (
   const startTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  console.log(
+    `🔧 useGameTimer HOOK CALLED: isActive=${isActive}, initialTime=${initialTime}, timeRemaining=${timeRemaining}, onTimeUp=${!!onTimeUp}`
+  );
+
   useEffect(() => {
     console.log(
-      `useGameTimer useEffect: isActive=${isActive}, timeRemaining=${timeRemaining}, startTimeRef=${startTimeRef.current}`
+      `🔄 useGameTimer useEffect RUNNING: isActive=${isActive}, timeRemaining=${timeRemaining}, startTimeRef=${startTimeRef.current}, deps=[${isActive}, ${initialTime}, ${!!onTimeUp}]`
     );
 
     if (isActive && timeRemaining > 0) {
