@@ -76,9 +76,12 @@ const Game = () => {
 
   useEffect(() => {
     if (gameState.phase === "question") {
+      console.log(
+        `Game phase changed to question for question ${gameState.currentQuestionIndex + 1} - resetting timer`
+      );
       resetTimer(30);
     }
-  }, [gameState.currentQuestionIndex, gameState.phase]); // Removed resetTimer from dependencies
+  }, [gameState.currentQuestionIndex, gameState.phase, resetTimer]);
 
   const team = TEAMS[teamId as keyof typeof TEAMS];
 

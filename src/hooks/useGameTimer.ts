@@ -14,6 +14,9 @@ export const useGameTimer = (
       // Set start time when timer becomes active
       if (startTimeRef.current === null) {
         startTimeRef.current = Date.now();
+        console.log(
+          `Timer started at ${new Date(startTimeRef.current).toISOString()}, duration: ${initialTime}s`
+        );
       }
 
       // Calculate actual time remaining based on elapsed time
@@ -26,6 +29,7 @@ export const useGameTimer = (
         setTimeRemaining(remaining);
 
         if (remaining === 0 && onTimeUp) {
+          console.log(`Timer expired! Calling onTimeUp`);
           onTimeUp();
         }
       };
@@ -52,18 +56,20 @@ export const useGameTimer = (
           handleVisibilityChange
         );
       };
-    } else if (timeRemaining === 0 && onTimeUp) {
-      onTimeUp();
     }
+    // Removed problematic else-if condition that was firing during state transitions
+    // The timer expiration is already handled within the main timer logic above
   }, [isActive, initialTime, onTimeUp]);
 
   const resetTimer = useCallback(
     (newTime?: number) => {
       const resetTime = newTime ?? initialTime;
       setTimeRemaining(resetTime);
-      startTimeRef.current = isActive ? Date.now() : null;
+      // Always reset the start time when timer is reset - the useEffect will handle activation
+      startTimeRef.current = null;
+      console.log(`Timer reset to ${resetTime} seconds, start time cleared`);
     },
-    [initialTime, isActive]
+    [initialTime]
   );
 
   return {
