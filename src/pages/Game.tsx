@@ -46,6 +46,10 @@ const Game = () => {
   const isTimerActive =
     gameState.phase === "question" && !gameState.hasSubmitted;
 
+  console.log(
+    `Game.tsx: Timer state - phase: ${gameState.phase}, hasSubmitted: ${gameState.hasSubmitted}, isTimerActive: ${isTimerActive}`
+  );
+
   const { timeRemaining, resetTimer } = useGameTimer(
     30,
     isTimerActive,

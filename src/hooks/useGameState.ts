@@ -186,6 +186,10 @@ export const useGameState = (
         setTeamMates((prev) =>
           prev.map((mate) => ({ ...mate, hasAnswered: false }))
         );
+      } else {
+        console.log(
+          `[SYNC] ✅ Questions already in sync (${currentQuestionIndex + 1}), no state changes needed`
+        );
       }
     } catch (error) {
       console.error("Failed to sync game state:", error);
