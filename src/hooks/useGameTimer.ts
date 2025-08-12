@@ -28,7 +28,7 @@ export const useGameTimer = (
 
         setTimeRemaining(remaining);
 
-        if (remaining === 0 && onTimeUp) {
+        if (remaining === 0 && onTimeUp && startTimeRef.current !== null) {
           console.log(`Timer expired! Calling onTimeUp`);
           onTimeUp();
         }
@@ -64,10 +64,19 @@ export const useGameTimer = (
   const resetTimer = useCallback(
     (newTime?: number) => {
       const resetTime = newTime ?? initialTime;
+
+      // Clear any existing interval first
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
       setTimeRemaining(resetTime);
       // Always reset the start time when timer is reset - the useEffect will handle activation
       startTimeRef.current = null;
-      console.log(`Timer reset to ${resetTime} seconds, start time cleared`);
+      console.log(
+        `Timer reset to ${resetTime} seconds, start time cleared, interval cleared`
+      );
     },
     [initialTime]
   );
