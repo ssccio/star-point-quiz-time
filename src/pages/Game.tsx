@@ -1,14 +1,12 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Timer } from "@/components/game/Timer";
 import { QuestionCard } from "@/components/game/QuestionCard";
 import { GameHeader } from "@/components/game/GameHeader";
 import { AnswerReveal } from "@/components/game/AnswerReveal";
 import { TeamStatus } from "@/components/game/TeamStatus";
 import { TEAMS, TEAM_COLORS } from "@/utils/constants";
 import { useGameState } from "@/hooks/useGameState";
-import { useGameTimer } from "@/hooks/useGameTimer";
 
 const Game = () => {
   const location = useLocation();
@@ -43,18 +41,6 @@ const Game = () => {
     playerId,
     questionSetId || undefined
   );
-  const isTimerActive =
-    gameState.phase === "question" && !gameState.hasSubmitted;
-
-  console.log(
-    `Game.tsx: Timer state - phase: ${gameState.phase}, hasSubmitted: ${gameState.hasSubmitted}, isTimerActive: ${isTimerActive}`
-  );
-
-  const { timeRemaining, resetTimer } = useGameTimer(
-    30,
-    isTimerActive,
-    gameState.handleTimeUp
-  );
 
   useEffect(() => {
     if (!playerName || !teamId) {
@@ -77,15 +63,6 @@ const Game = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [playerName, teamId, navigate, isPracticeMode, gameState]);
-
-  useEffect(() => {
-    if (gameState.phase === "question") {
-      console.log(
-        `Game phase changed to question for question ${gameState.currentQuestionIndex + 1} - resetting timer`
-      );
-      resetTimer(30);
-    }
-  }, [gameState.currentQuestionIndex, gameState.phase, resetTimer]);
 
   const team = TEAMS[teamId as keyof typeof TEAMS];
 
@@ -113,11 +90,6 @@ const Game = () => {
               : gameState.playerScore // Show player's personal score in multiplayer
           }
         />
-
-        {/* Timer */}
-        {gameState.phase === "question" && !gameState.hasSubmitted && (
-          <Timer timeRemaining={timeRemaining} totalTime={30} />
-        )}
 
         {/* Question with larger text */}
         {gameState.phase === "question" && (
